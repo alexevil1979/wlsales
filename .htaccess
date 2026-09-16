@@ -1,0 +1,4 @@
+# Запрет прямого доступа к корню проекта (если DocumentRoot ошибочно выше public)
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
