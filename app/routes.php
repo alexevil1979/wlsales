@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Controllers\AccountController;
+use App\Controllers\AccountProxyController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\OrdersController;
 use App\Controllers\Admin\PaymentsController;
 use App\Controllers\Admin\ProductsController;
+use App\Controllers\Admin\ProxyAdminController;
 use App\Controllers\Admin\ServersController;
 use App\Controllers\Admin\SettingsController;
 use App\Controllers\Admin\TicketsController;
@@ -17,6 +19,7 @@ use App\Controllers\CheckoutController;
 use App\Controllers\CronController;
 use App\Controllers\HomeController;
 use App\Controllers\PageController;
+use App\Controllers\ProxyController;
 use App\Controllers\WebhookController;
 use App\Core\Router;
 
@@ -26,6 +29,8 @@ $router = new Router();
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/catalog', [CatalogController::class, 'index']);
 $router->get('/catalog/{slug}', [CatalogController::class, 'show']);
+$router->get('/proxy', [ProxyController::class, 'index']);
+$router->post('/proxy/checkout/{planId}', [ProxyController::class, 'checkout'], ['auth']);
 $router->get('/how', [PageController::class, 'how']);
 $router->get('/faq', [PageController::class, 'faq']);
 $router->get('/contacts', [PageController::class, 'contacts']);
@@ -44,6 +49,11 @@ $router->get('/account', [AccountController::class, 'index'], ['auth']);
 $router->get('/account/orders', [AccountController::class, 'orders'], ['auth']);
 $router->get('/account/orders/{id}', [AccountController::class, 'orderShow'], ['auth']);
 $router->get('/account/servers', [AccountController::class, 'servers'], ['auth']);
+$router->get('/account/proxy', [AccountProxyController::class, 'index'], ['auth']);
+$router->post('/account/proxy/ticket', [AccountProxyController::class, 'ticketHint'], ['auth']);
+$router->get('/account/proxy/{id}', [AccountProxyController::class, 'show'], ['auth']);
+$router->post('/account/proxy/{id}/domains', [AccountProxyController::class, 'addDomain'], ['auth']);
+$router->post('/account/proxy/{id}/renew', [AccountProxyController::class, 'renew'], ['auth']);
 $router->get('/account/tickets', [AccountController::class, 'tickets'], ['auth']);
 $router->post('/account/tickets', [AccountController::class, 'ticketCreate'], ['auth']);
 $router->get('/account/tickets/{id}', [AccountController::class, 'ticketShow'], ['auth']);
@@ -86,6 +96,16 @@ $router->get('/admin/servers', [ServersController::class, 'index'], ['admin']);
 $router->post('/admin/servers', [ServersController::class, 'create'], ['admin']);
 $router->post('/admin/servers/{id}', [ServersController::class, 'update'], ['admin']);
 $router->post('/admin/servers/{id}/delete', [ServersController::class, 'delete'], ['admin']);
+$router->post('/admin/servers/{id}/make-proxy-node', [ProxyAdminController::class, 'makeNodeFromServer'], ['admin']);
+
+$router->get('/admin/proxy', [ProxyAdminController::class, 'index'], ['admin']);
+$router->post('/admin/proxy/nodes', [ProxyAdminController::class, 'createNode'], ['admin']);
+$router->post('/admin/proxy/nodes/{id}', [ProxyAdminController::class, 'updateNode'], ['admin']);
+$router->post('/admin/proxy/nodes/{id}/dead', [ProxyAdminController::class, 'markNodeDead'], ['admin']);
+$router->post('/admin/proxy/subscriptions/{id}/assign', [ProxyAdminController::class, 'assignNode'], ['admin']);
+$router->post('/admin/proxy/domains/{id}/check-dns', [ProxyAdminController::class, 'checkDns'], ['admin']);
+$router->post('/admin/proxy/domains/{id}', [ProxyAdminController::class, 'updateDomain'], ['admin']);
+$router->get('/admin/proxy/domains/{id}/snippet', [ProxyAdminController::class, 'snippet'], ['admin']);
 
 $router->get('/admin/tickets', [TicketsController::class, 'index'], ['admin']);
 $router->get('/admin/tickets/{id}', [TicketsController::class, 'show'], ['admin']);
