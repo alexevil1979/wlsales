@@ -3,7 +3,9 @@
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $user = \App\Core\Auth::user();
 $link = static function (string $href, string $label) use ($path): string {
-    $active = $href === '/admin' ? ($path === '/admin') : str_starts_with($path, $href);
+    $active = $href === '/account'
+        ? ($path === '/account')
+        : str_starts_with($path, $href);
     return '<a href="' . e($href) . '" class="' . ($active ? 'is-active' : '') . '">' . e($label) . '</a>';
 };
 ?>
@@ -12,35 +14,35 @@ $link = static function (string $href, string $label) use ($path): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= e($title ?? 'Админ') ?> — WL Sales</title>
+  <title><?= e($title ?? 'Кабинет') ?> — WL Sales</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/panel.css">
 </head>
-<body class="panel-body panel-admin">
+<body class="panel-body panel-account">
 <div class="panel-shell">
   <aside class="panel-sidebar">
-    <a class="panel-brand" href="/admin"><span class="dot">WL</span> WL Admin</a>
+    <a class="panel-brand" href="/account"><span class="dot">WL</span> Кабинет</a>
     <nav class="panel-nav">
-      <div class="nav-section">Обзор</div>
-      <?= $link('/admin', 'Дашборд') ?>
-      <div class="nav-section">Продажи</div>
-      <?= $link('/admin/products', 'Товары') ?>
-      <?= $link('/admin/orders', 'Заказы') ?>
-      <?= $link('/admin/payments', 'Платежи') ?>
-      <div class="nav-section">Инфра</div>
-      <?= $link('/admin/servers', 'Инвентарь') ?>
-      <?= $link('/admin/users', 'Пользователи') ?>
-      <?= $link('/admin/tickets', 'Тикеты') ?>
-      <div class="nav-section">Система</div>
-      <?= $link('/admin/settings', 'Настройки') ?>
+      <div class="nav-section">Аккаунт</div>
+      <?= $link('/account', 'Обзор') ?>
+      <?= $link('/account/orders', 'Заказы') ?>
+      <?= $link('/account/servers', 'Серверы') ?>
+      <?= $link('/account/tickets', 'Тикеты') ?>
+      <?= $link('/account/password', 'Пароль') ?>
+      <div class="nav-section">Магазин</div>
+      <a href="/catalog">Каталог</a>
+      <a href="/">На сайт</a>
     </nav>
-    <a class="panel-footer-link" href="/">← На сайт</a>
+    <form action="/logout" method="post" style="margin-top:1rem;padding:0 0.7rem">
+      <?= \App\Core\Csrf::field() ?>
+      <button class="btn btn-ghost btn-sm" type="submit" style="width:100%">Выйти</button>
+    </form>
   </aside>
   <div class="panel-main">
     <header class="panel-topbar">
-      <h1><?= e($title ?? 'Админ') ?></h1>
-      <div class="meta"><?= e($user['email'] ?? '') ?></div>
+      <h1><?= e($title ?? 'Кабинет') ?></h1>
+      <div class="meta"><?= e($user['name'] ?? '') ?> · <?= e($user['email'] ?? '') ?></div>
     </header>
     <div class="panel-content">
       <?php if ($m = flash('success')): ?><div class="flash flash-success"><?= e($m) ?></div><?php endif; ?>
@@ -49,5 +51,6 @@ $link = static function (string $href, string $label) use ($path): string {
     </div>
   </div>
 </div>
+<script src="/assets/js/app.js" defer></script>
 </body>
 </html>

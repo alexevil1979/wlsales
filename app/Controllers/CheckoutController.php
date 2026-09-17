@@ -54,7 +54,7 @@ final class CheckoutController
         $order = Order::findById((int) $orderId);
         if (!$order || (int) $order['user_id'] !== (int) Auth::id()) {
             http_response_code(404);
-            View::render('errors/404', ['title' => 'Заказ не найден']);
+            View::render('errors/404', ['title' => 'Заказ не найден'], 'account');
             return;
         }
 
@@ -73,7 +73,7 @@ final class CheckoutController
             'gateways' => $gateways,
             'provider' => $provider,
             'payments' => Payment::forOrder((int) $order['id']),
-        ]);
+        ], 'account');
     }
 
     public function startPayment(string $orderId): void

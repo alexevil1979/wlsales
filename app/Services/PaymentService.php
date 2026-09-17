@@ -12,6 +12,11 @@ final class PaymentService
         return [
             new ManualSbpGateway(),
             new YooKassaGateway(),
+            new FreeKassaGateway('freekassa_sbp'),
+            new FreeKassaGateway('freekassa_card'),
+            new FreeKassaGateway('freekassa_world_card'),
+            new PlategaGateway(),
+            new NowPaymentsGateway(),
             new CryptoStubGateway(),
         ];
     }
@@ -30,5 +35,20 @@ final class PaymentService
             }
         }
         return null;
+    }
+
+    public static function label(string $code): string
+    {
+        return match ($code) {
+            'manual_sbp' => 'СБП / перевод вручную',
+            'yookassa' => 'ЮKassa (карта)',
+            'freekassa_sbp' => 'FreeKassa (СБП / QR)',
+            'freekassa_card' => 'FreeKassa (карты РФ)',
+            'freekassa_world_card' => 'FreeKassa (VISA / MC USD)',
+            'platega' => 'Platega',
+            'nowpayments' => 'NOWPayments (crypto)',
+            'crypto_usdt' => 'USDT TRC20 (вручную)',
+            default => $code,
+        };
     }
 }

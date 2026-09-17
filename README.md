@@ -81,33 +81,23 @@ GET https://wlsales.1tlt.ru/cron?token=YOUR_APP_KEY
 
 ## Оплата
 
-### Ручной СБП
+### Ручной СБП / USDT
+В админке → Настройки. Клиент жмёт «Я оплатил», админ подтверждает.
 
-В админке → Настройки укажите телефон СБП. Клиент выбирает способ, переводит, жмёт «Я оплатил». Админ подтверждает в «Платежи».
+### ЮKassa / FreeKassa / Platega / NOWPayments
+Ключи в `.env` (см. `.env.example`). Пустые ключи — способ скрыт.
 
-### Crypto USDT TRC20
+Webhooks:
+- `POST /webhooks/yookassa`
+- `POST /webhooks/freekassa`
+- `POST /webhooks/platega`
+- `POST /webhooks/nowpayments`
 
-Укажите адрес в настройках (не оставляйте заглушку `TXXX...`). Подтверждение вручную.
+FreeKassa даёт три метода: СБП (i=44), карты РФ (i=36), world VISA USD (i=32).
 
-### ЮKassa
-
-1. В `.env` заполните:
-
-```
-YOOKASSA_SHOP_ID=...
-YOOKASSA_SECRET_KEY=...
-YOOKASSA_RETURN_URL=https://wlsales.1tlt.ru/account/orders
-```
-
-2. В кабинете ЮKassa укажите URL вебхука:
-
-```
-https://wlsales.1tlt.ru/webhooks/yookassa
-```
-
-3. Событие: `payment.succeeded`. Сумма сверяется с заказом; повторная обработка идемпотентна.
-
-Пока ключи пустые — способ скрыт на витрине.
+### Telegram-уведомления админу
+`TELEGRAM_BOT_TOKEN` + `TELEGRAM_ADMIN_CHAT_ID` в `.env` или в Настройках.
+События: регистрация, оплата, выдача, тикеты. Кнопка «Тест Telegram» в админке.
 
 ## Почта
 

@@ -50,6 +50,9 @@ final class OrderService
                 . '<p>Ожидайте выдачи доступов в кабинете: ' . e(app_url('/account/orders/' . $orderId)) . '</p>';
             Mailer::send($user['email'], 'Оплата получена — заказ #' . $orderId, $html);
         }
+
+        $fresh = Order::findById($orderId) ?: $order;
+        TelegramNotifier::notifyPayment($fresh, $provider);
     }
 
     public static function deliver(int $orderId, int $serverId): void
@@ -76,6 +79,8 @@ final class OrderService
                 . e(app_url('/account/servers')) . '</p>'
             );
         }
+
+        TelegramNotifier::notifyDelivered(Order::findById($orderId) ?: $order, (string) ($server['ip'] ?? ''));
     }
 
     public static function confirmManualPayment(int $paymentId): void

@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\Server;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\TelegramNotifier;
 
 final class AccountController
 {
@@ -19,20 +20,20 @@ final class AccountController
     {
         $user = Auth::user();
         View::render('account/index', [
-            'title' => 'Кабинет — WL Sales',
+            'title' => 'Кабинет',
             'user' => $user,
             'orders' => Order::forUser((int) $user['id']),
             'servers' => Server::forUser((int) $user['id']),
-        ]);
+        ], 'account');
     }
 
     public function orders(): void
     {
         $user = Auth::user();
         View::render('account/orders', [
-            'title' => 'Мои заказы — WL Sales',
+            'title' => 'Мои заказы',
             'orders' => Order::forUser((int) $user['id']),
-        ]);
+        ], 'account');
     }
 
     public function orderShow(string $id): void
@@ -41,7 +42,7 @@ final class AccountController
         $order = Order::findById((int) $id);
         if (!$order || (int) $order['user_id'] !== (int) $user['id']) {
             http_response_code(404);
-            View::render('errors/404', ['title' => 'Заказ не найден']);
+            View::render('errors/404', ['title' => 'Заказ не найден'], 'account');
             return;
         }
         $server = null;
@@ -52,29 +53,29 @@ final class AccountController
             }
         }
         View::render('account/order_show', [
-            'title' => 'Заказ #' . $order['id'] . ' — WL Sales',
+            'title' => 'Заказ #' . $order['id'],
             'order' => $order,
             'server' => $server,
-        ]);
+        ], 'account');
     }
 
     public function servers(): void
     {
         $user = Auth::user();
         View::render('account/servers', [
-            'title' => 'Мои серверы — WL Sales',
+            'title' => 'Мои серверы',
             'servers' => Server::forUser((int) $user['id']),
-        ]);
+        ], 'account');
     }
 
     public function tickets(): void
     {
         $user = Auth::user();
         View::render('account/tickets', [
-            'title' => 'Тикеты — WL Sales',
+            'title' => 'Тикеты',
             'tickets' => Ticket::forUser((int) $user['id']),
             'orders' => Order::forUser((int) $user['id']),
-        ]);
+        ], 'account');
     }
 
     public function ticketCreate(): void
@@ -94,6 +95,10 @@ final class AccountController
 
         $tid = Ticket::create((int) $user['id'], $subject, $orderId);
         Ticket::addMessage($tid, (int) $user['id'], $body);
+        $ticket = Ticket::findById($tid);
+        if ($ticket) {
+            TelegramNotifier::notifyTicket($ticket, $body);
+        }
         flash('success', 'Тикет создан.');
         redirect('/account/tickets/' . $tid);
     }
@@ -104,14 +109,14 @@ final class AccountController
         $ticket = Ticket::findById((int) $id);
         if (!$ticket || (int) $ticket['user_id'] !== (int) $user['id']) {
             http_response_code(404);
-            View::render('errors/404', ['title' => 'Тикет не найден']);
+            View::render('errors/404', ['title' => 'Тикет не найден'], 'account');
             return;
         }
         View::render('account/ticket_show', [
             'title' => 'Тикет #' . $ticket['id'],
             'ticket' => $ticket,
             'messages' => Ticket::messages((int) $ticket['id']),
-        ]);
+        ], 'account');
     }
 
     public function ticketReply(string $id): void
@@ -135,7 +140,7 @@ final class AccountController
 
     public function passwordForm(): void
     {
-        View::render('account/password', ['title' => 'Смена пароля — WL Sales']);
+        View::render('account/password', ['title' => 'Смена пароля'], 'account');
     }
 
     public function passwordUpdate(): void

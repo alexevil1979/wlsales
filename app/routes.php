@@ -58,6 +58,9 @@ $router->get('/pay/{orderId}', [CheckoutController::class, 'pay'], ['auth']);
 $router->post('/pay/{orderId}', [CheckoutController::class, 'startPayment'], ['auth']);
 $router->post('/pay/{orderId}/confirm', [CheckoutController::class, 'markPaid'], ['auth']);
 $router->post('/webhooks/yookassa', [WebhookController::class, 'yookassa']);
+$router->post('/webhooks/freekassa', [WebhookController::class, 'freekassa']);
+$router->post('/webhooks/nowpayments', [WebhookController::class, 'nowpayments']);
+$router->post('/webhooks/platega', [WebhookController::class, 'platega']);
 
 // Admin
 $router->get('/admin', [DashboardController::class, 'index'], ['admin']);

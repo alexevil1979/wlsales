@@ -96,6 +96,7 @@ final class AuthController
         clear_old();
         if ($user) {
             Auth::login($user);
+            \App\Services\TelegramNotifier::notifyRegistration($user);
         }
         flash('success', 'Аккаунт создан. Можно выбирать сервер.');
         redirect('/catalog');
