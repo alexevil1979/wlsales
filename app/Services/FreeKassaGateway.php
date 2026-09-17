@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Env;
-use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 
 /**
  * FreeKassa — как в fullvpnservice (СБП / карты РФ / world card).
  */
 final class FreeKassaGateway implements PaymentGatewayInterface
 {
-    public function __construct(private readonly string $code = 'freekassa_sbp')
-    {
+    /** @param array<string, mixed>|null $gatewayRow */
+    public function __construct(
+        private readonly string $code = 'freekassa_sbp',
+        private readonly ?array $gatewayRow = null,
+    ) {
     }
 
     public function name(): string
@@ -24,29 +27,31 @@ final class FreeKassaGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        if (setting('pay_freekassa_on', '1') === '0') {
+        $row = $this->row();
+        if ($row && !(bool) $row['enabled']) {
             return false;
         }
-        $shop = pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID');
-        $key = pay_cfg('pay_freekassa_api_key', 'FREEKASSA_API_KEY');
-        return $shop !== '' && $key !== '';
+        return $this->shopId() !== '' && $this->apiKey() !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $shopId = (int) pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID', '0');
-        $apiKey = pay_cfg('pay_freekassa_api_key', 'FREEKASSA_API_KEY');
-        $base = rtrim(pay_cfg('pay_freekassa_api_base', 'FREEKASSA_API_BASE', 'https://api.fk.life/v1'), '/');
+        $row = $this->row() ?? [];
+        $shopId = (int) $this->shopId();
+        $apiKey = $this->apiKey();
+        $base = rtrim($this->cfg('api_base_url', pay_cfg('pay_freekassa_api_base', 'FREEKASSA_API_BASE', 'https://api.fk.life/v1')), '/');
+        $path = '/' . ltrim($this->cfg('api_create_path', '/orders/create'), '/');
         $method = $this->paymentMethod();
 
-        $amount = round((float) $order['amount'], 2);
-        $currency = 'RUB';
+        $chargeBase = PaymentService::chargeAmount($row, (float) $order['amount']);
+        $amount = round($chargeBase, 2);
+        $currency = $this->cfg('currency', 'RUB') ?: 'RUB';
         if ($this->code === 'freekassa_world_card') {
             $rate = (float) setting('usd_rate', Env::get('USD_RATE', '90') ?? '90');
             if ($rate <= 0) {
                 $rate = 90;
             }
-            $amount = max(1.0, round($amount / $rate, 2));
+            $amount = max(1.0, round($chargeBase / $rate, 2));
             $currency = 'USD';
         }
 
@@ -58,28 +63,37 @@ final class FreeKassaGateway implements PaymentGatewayInterface
             'pending'
         );
 
+        $notify = $this->cfg('notification_url', app_url('/webhooks/freekassa'));
+        $success = $this->cfg('success_url', app_url('/account/orders/' . $order['id']));
+        $failure = $this->cfg('failure_url', app_url('/pay/' . $order['id']));
+        $ip = client_ip();
+        if ($ip === '' || $ip === '0.0.0.0') {
+            $ip = $this->cfg('fallback_ip', '127.0.0.1');
+        }
+
         $payload = [
             'shopId' => $shopId,
             'nonce' => (int) (microtime(true) * 1000),
             'paymentId' => (string) $paymentId,
             'i' => $method,
             'email' => (string) ($order['user_email'] ?? 'client@wlsales.local'),
-            'ip' => client_ip(),
+            'ip' => $ip,
             'amount' => (float) number_format($amount, 2, '.', ''),
             'currency' => $currency,
-            'notification_url' => app_url('/webhooks/freekassa'),
-            'success_url' => app_url('/account/orders/' . $order['id']),
-            'failure_url' => app_url('/pay/' . $order['id']),
+            'notification_url' => $notify,
+            'success_url' => $success,
+            'failure_url' => $failure,
         ];
         $payload['signature'] = $this->apiSignature($payload, $apiKey);
 
-        $ch = curl_init($base . '/orders/create');
+        $timeout = max(5, min(60, (int) $this->cfg('api_timeout_sec', '25')));
+        $ch = curl_init($base . $path);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Accept: application/json'],
             CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => $timeout,
         ]);
         $raw = (string) curl_exec($ch);
         curl_close($ch);
@@ -96,7 +110,6 @@ final class FreeKassaGateway implements PaymentGatewayInterface
         }
         $external = (string) ($data['orderId'] ?? $data['order_id'] ?? $data['data']['orderId'] ?? $paymentId);
         Payment::updateStatus($paymentId, 'pending', $raw);
-        // store external
         $st = \App\Core\Database::pdo()->prepare('UPDATE payments SET external_id = ? WHERE id = ?');
         $st->execute([$external, $paymentId]);
 
@@ -109,12 +122,12 @@ final class FreeKassaGateway implements PaymentGatewayInterface
 
     public function handleWebhook(array $payload): void
     {
-        $secret2 = pay_cfg('pay_freekassa_secret_word_2', 'FREEKASSA_SECRET_WORD_2');
+        $secret2 = $this->cfg('secret_word_2', pay_cfg('pay_freekassa_secret_word_2', 'FREEKASSA_SECRET_WORD_2'));
         $merchantId = trim((string) ($payload['MERCHANT_ID'] ?? ''));
         $amount = trim((string) ($payload['AMOUNT'] ?? ''));
         $orderId = trim((string) ($payload['MERCHANT_ORDER_ID'] ?? ''));
         $sign = strtolower(trim((string) ($payload['SIGN'] ?? '')));
-        $shop = pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID');
+        $shop = $this->shopId();
 
         if ($secret2 !== '') {
             $calc = md5($merchantId . ':' . $amount . ':' . $secret2 . ':' . $orderId);
@@ -131,16 +144,50 @@ final class FreeKassaGateway implements PaymentGatewayInterface
             return;
         }
         Payment::updateStatus((int) $payment['id'], 'succeeded', json_encode($payload, JSON_UNESCAPED_UNICODE));
-        OrderService::markPaid((int) $payment['order_id'], $this->code);
+        OrderService::markPaid((int) $payment['order_id'], (string) $payment['provider']);
     }
 
     private function paymentMethod(): int
     {
+        $fromConfig = $this->cfg('payment_method');
+        if ($fromConfig !== '' && ctype_digit($fromConfig)) {
+            return (int) $fromConfig;
+        }
         return match ($this->code) {
             'freekassa_card' => 36,
             'freekassa_world_card' => 32,
-            default => 44, // SBP
+            default => 44,
         };
+    }
+
+    private function shopId(): string
+    {
+        $v = $this->cfg('shop_id');
+        return $v !== '' ? $v : pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID');
+    }
+
+    private function apiKey(): string
+    {
+        $v = $this->cfg('api_key');
+        return $v !== '' ? $v : pay_cfg('pay_freekassa_api_key', 'FREEKASSA_API_KEY');
+    }
+
+    private function cfg(string $key, string $default = ''): string
+    {
+        $row = $this->row();
+        if ($row) {
+            $v = PaymentGateway::cfgString($row, $key);
+            if ($v !== '') {
+                return $v;
+            }
+        }
+        return $default;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function row(): ?array
+    {
+        return $this->gatewayRow ?? PaymentGateway::findByCode($this->code);
     }
 
     /** @param array<string, mixed> $data */

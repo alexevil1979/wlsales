@@ -17,11 +17,17 @@
           <div class="panel-card">
             <h2 style="font-size:1.05rem;margin-top:0"><?= e(\App\Services\PaymentService::label($code)) ?></h2>
             <?php if ($code === 'manual_sbp'): ?>
-              <p>Телефон СБП: <strong><?= e(setting('sbp_phone')) ?></strong></p>
-              <p style="font-size:0.9rem"><?= e(str_replace('{order_id}', (string)$order['id'], setting('sbp_comment', 'Оплата заказа #{order_id}'))) ?></p>
+              <?php
+                $sbp = $gw instanceof \App\Services\ManualSbpGateway ? $gw : new \App\Services\ManualSbpGateway();
+              ?>
+              <p>Телефон СБП: <strong><?= e($sbp->phone()) ?></strong></p>
+              <p style="font-size:0.9rem"><?= e(str_replace('{order_id}', (string)$order['id'], $sbp->comment())) ?></p>
             <?php elseif ($code === 'crypto_usdt'): ?>
+              <?php
+                $crypto = $gw instanceof \App\Services\CryptoStubGateway ? $gw : new \App\Services\CryptoStubGateway();
+              ?>
               <p>USDT TRC20:</p>
-              <p><code style="word-break:break-all"><?= e(setting('crypto_usdt_trc20')) ?></code></p>
+              <p><code style="word-break:break-all"><?= e($crypto->address()) ?></code></p>
             <?php elseif (str_starts_with($code, 'freekassa')): ?>
               <p>Оплата через FreeKassa. После выбора откроется страница провайдера.</p>
             <?php elseif ($code === 'nowpayments'): ?>
@@ -30,6 +36,8 @@
               <p>Оплата через Platega.</p>
             <?php elseif ($code === 'yookassa'): ?>
               <p>Карта / СБП через ЮKassa.</p>
+            <?php else: ?>
+              <p>Оплата через <?= e(\App\Services\PaymentService::label($code)) ?>.</p>
             <?php endif; ?>
             <form method="post" action="/pay/<?= (int)$order['id'] ?>">
               <?= \App\Core\Csrf::field() ?>

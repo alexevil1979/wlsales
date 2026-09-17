@@ -59,7 +59,7 @@ final class CheckoutController
         }
 
         $provider = isset($_GET['provider']) ? (string) $_GET['provider'] : '';
-        $gateways = PaymentService::enabled();
+        $gateways = PaymentService::enabled((float) $order['amount']);
         if ($provider !== '') {
             $gw = PaymentService::byName($provider);
             if ($gw && $gw->isEnabled() && $order['status'] === 'awaiting_payment') {

@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Services\FreeKassaGateway;
 use App\Services\NowPaymentsGateway;
+use App\Services\PaymentService;
 use App\Services\PlategaGateway;
 use App\Services\YooKassaGateway;
 
@@ -25,7 +26,11 @@ final class WebhookController
             $payload = is_array($json) ? $json : [];
         }
         try {
-            (new FreeKassaGateway('freekassa_sbp'))->handleWebhook($payload);
+            $gw = PaymentService::byName('freekassa_sbp')
+                ?? PaymentService::byName('freekassa_card')
+                ?? PaymentService::byName('freekassa_world_card')
+                ?? new FreeKassaGateway('freekassa_sbp');
+            $gw->handleWebhook($payload);
             http_response_code(200);
             echo 'YES';
         } catch (\Throwable $e) {

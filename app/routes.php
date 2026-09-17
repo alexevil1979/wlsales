@@ -89,9 +89,11 @@ $router->post('/admin/orders/{id}/status', [OrdersController::class, 'updateStat
 $router->post('/admin/orders/{id}/deliver', [OrdersController::class, 'deliver'], ['admin']);
 
 $router->get('/admin/payments', [PaymentsController::class, 'index'], ['admin']);
-$router->post('/admin/payments/{id}/confirm', [PaymentsController::class, 'confirm'], ['admin']);
 $router->get('/admin/payments/gateways', [GatewaysController::class, 'index'], ['admin']);
-$router->post('/admin/payments/gateways', [GatewaysController::class, 'save'], ['admin']);
+$router->get('/admin/payments/gateways/{id}', [GatewaysController::class, 'edit'], ['admin']);
+$router->post('/admin/payments/gateways/{id}', [GatewaysController::class, 'save'], ['admin']);
+$router->post('/admin/payments/gateways/{id}/toggle', [GatewaysController::class, 'toggle'], ['admin']);
+$router->post('/admin/payments/{id}/confirm', [PaymentsController::class, 'confirm'], ['admin']);
 
 $router->get('/admin/users', [UsersController::class, 'index'], ['admin']);
 $router->post('/admin/users/{id}', [UsersController::class, 'update'], ['admin']);

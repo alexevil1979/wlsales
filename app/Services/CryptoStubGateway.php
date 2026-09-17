@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 
 final class CryptoStubGateway implements PaymentGatewayInterface
 {
+    /** @param array<string, mixed>|null $gatewayRow */
+    public function __construct(private readonly ?array $gatewayRow = null)
+    {
+    }
+
     public function name(): string
     {
         return 'crypto_usdt';
@@ -15,10 +21,11 @@ final class CryptoStubGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        if (setting('pay_crypto_on', '1') === '0') {
+        $row = $this->row();
+        if ($row && !(bool) $row['enabled']) {
             return false;
         }
-        $addr = setting('crypto_usdt_trc20', '');
+        $addr = $this->address();
         return $addr !== '' && $addr !== 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
     }
 
@@ -40,6 +47,18 @@ final class CryptoStubGateway implements PaymentGatewayInterface
 
     public function handleWebhook(array $payload): void
     {
-        // Подтверждение вручную
+    }
+
+    public function address(): string
+    {
+        $row = $this->row();
+        $fromGw = $row ? PaymentGateway::cfgString($row, 'address') : '';
+        return $fromGw !== '' ? $fromGw : setting('crypto_usdt_trc20', '');
+    }
+
+    /** @return array<string, mixed>|null */
+    private function row(): ?array
+    {
+        return $this->gatewayRow ?? PaymentGateway::findByCode('crypto_usdt');
     }
 }

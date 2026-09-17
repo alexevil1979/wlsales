@@ -6,9 +6,15 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 
 final class YooKassaGateway implements PaymentGatewayInterface
 {
+    /** @param array<string, mixed>|null $gatewayRow */
+    public function __construct(private readonly ?array $gatewayRow = null)
+    {
+    }
+
     public function name(): string
     {
         return 'yookassa';
@@ -16,24 +22,25 @@ final class YooKassaGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        if (setting('pay_yookassa_on', '1') === '0') {
+        $row = $this->row();
+        if ($row && !(bool) $row['enabled']) {
             return false;
         }
-        $shop = pay_cfg('pay_yookassa_shop_id', 'YOOKASSA_SHOP_ID');
-        $secret = pay_cfg('pay_yookassa_secret_key', 'YOOKASSA_SECRET_KEY');
-        return $shop !== '' && $secret !== '';
+        return $this->shopId() !== '' && $this->secret() !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $shopId = pay_cfg('pay_yookassa_shop_id', 'YOOKASSA_SHOP_ID');
-        $secret = pay_cfg('pay_yookassa_secret_key', 'YOOKASSA_SECRET_KEY');
-        $returnUrl = pay_cfg('pay_yookassa_return_url', 'YOOKASSA_RETURN_URL', app_url('/account/orders'));
+        $row = $this->row() ?? [];
+        $shopId = $this->shopId();
+        $secret = $this->secret();
+        $returnUrl = $this->cfg('return_url', pay_cfg('pay_yookassa_return_url', 'YOOKASSA_RETURN_URL', app_url('/account/orders')));
+        $amount = PaymentService::chargeAmount($row, (float) $order['amount']);
         $idempotenceKey = bin2hex(random_bytes(16));
 
         $payload = [
             'amount' => [
-                'value' => number_format((float) $order['amount'], 2, '.', ''),
+                'value' => number_format($amount, 2, '.', ''),
                 'currency' => 'RUB',
             ],
             'confirmation' => [
@@ -45,6 +52,7 @@ final class YooKassaGateway implements PaymentGatewayInterface
             'metadata' => [
                 'order_id' => (int) $order['id'],
             ],
+            'test' => $row ? (bool) ($row['test_mode'] ?? false) : false,
         ];
 
         $ch = curl_init('https://api.yookassa.ru/v3/payments');
@@ -96,7 +104,7 @@ final class YooKassaGateway implements PaymentGatewayInterface
             return;
         }
         if ($existing['status'] === 'succeeded') {
-            return; // idempotent
+            return;
         }
 
         $paidAmount = (float) ($object['amount']['value'] ?? 0);
@@ -104,7 +112,8 @@ final class YooKassaGateway implements PaymentGatewayInterface
         if (!$order) {
             return;
         }
-        if (abs($paidAmount - (float) $order['amount']) > 0.01) {
+        $expected = PaymentService::chargeAmount($this->row() ?? [], (float) $order['amount']);
+        if (abs($paidAmount - $expected) > 0.01 && abs($paidAmount - (float) $order['amount']) > 0.01) {
             return;
         }
 
@@ -112,10 +121,33 @@ final class YooKassaGateway implements PaymentGatewayInterface
         OrderService::markPaid((int) $order['id'], $this->name());
     }
 
-    public static function verifyIp(?string $ip): bool
+    private function shopId(): string
     {
-        // ЮKassa публикует диапазоны; базовая проверка + секрет в Basic Auth при API.
-        // Вебхук дополнительно сверяет сумму заказа.
-        return true;
+        $v = $this->cfg('shop_id');
+        return $v !== '' ? $v : pay_cfg('pay_yookassa_shop_id', 'YOOKASSA_SHOP_ID');
+    }
+
+    private function secret(): string
+    {
+        $v = $this->cfg('secret_key');
+        return $v !== '' ? $v : pay_cfg('pay_yookassa_secret_key', 'YOOKASSA_SECRET_KEY');
+    }
+
+    private function cfg(string $key, string $default = ''): string
+    {
+        $row = $this->row();
+        if ($row) {
+            $v = PaymentGateway::cfgString($row, $key);
+            if ($v !== '') {
+                return $v;
+            }
+        }
+        return $default;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function row(): ?array
+    {
+        return $this->gatewayRow ?? PaymentGateway::findByCode('yookassa');
     }
 }

@@ -6,9 +6,15 @@ namespace App\Services;
 
 use App\Core\Env;
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 
 final class NowPaymentsGateway implements PaymentGatewayInterface
 {
+    /** @param array<string, mixed>|null $gatewayRow */
+    public function __construct(private readonly ?array $gatewayRow = null)
+    {
+    }
+
     public function name(): string
     {
         return 'nowpayments';
@@ -16,16 +22,18 @@ final class NowPaymentsGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        if (setting('pay_nowpayments_on', '1') === '0') {
+        $row = $this->row();
+        if ($row && !(bool) $row['enabled']) {
             return false;
         }
-        return pay_cfg('pay_nowpayments_api_key', 'NOWPAYMENTS_API_KEY') !== '';
+        return $this->apiKey() !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $key = pay_cfg('pay_nowpayments_api_key', 'NOWPAYMENTS_API_KEY');
-        $payCurrency = strtolower(pay_cfg('pay_nowpayments_pay_currency', 'NOWPAYMENTS_PAY_CURRENCY', 'usdttrc20'));
+        $row = $this->row() ?? [];
+        $key = $this->apiKey();
+        $payCurrency = strtolower($this->cfg('pay_currency', pay_cfg('pay_nowpayments_pay_currency', 'NOWPAYMENTS_PAY_CURRENCY', 'usdttrc20')));
 
         $paymentId = Payment::create(
             (int) $order['id'],
@@ -35,7 +43,7 @@ final class NowPaymentsGateway implements PaymentGatewayInterface
             'pending'
         );
 
-        $amountRub = (float) $order['amount'];
+        $amountRub = PaymentService::chargeAmount($row, (float) $order['amount']);
         $rate = (float) setting('usd_rate', Env::get('USD_RATE', '90') ?? '90');
         if ($rate <= 0) {
             $rate = 90;
@@ -104,5 +112,29 @@ final class NowPaymentsGateway implements PaymentGatewayInterface
         }
         Payment::updateStatus((int) $payment['id'], 'succeeded', json_encode($payload, JSON_UNESCAPED_UNICODE));
         OrderService::markPaid((int) $payment['order_id'], $this->name());
+    }
+
+    private function apiKey(): string
+    {
+        $v = $this->cfg('api_key');
+        return $v !== '' ? $v : pay_cfg('pay_nowpayments_api_key', 'NOWPAYMENTS_API_KEY');
+    }
+
+    private function cfg(string $key, string $default = ''): string
+    {
+        $row = $this->row();
+        if ($row) {
+            $v = PaymentGateway::cfgString($row, $key);
+            if ($v !== '') {
+                return $v;
+            }
+        }
+        return $default;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function row(): ?array
+    {
+        return $this->gatewayRow ?? PaymentGateway::findByCode('nowpayments');
     }
 }

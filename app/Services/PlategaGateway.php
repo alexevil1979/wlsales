@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Payment;
+use App\Models\PaymentGateway;
 
 final class PlategaGateway implements PaymentGatewayInterface
 {
+    /** @param array<string, mixed>|null $gatewayRow */
+    public function __construct(private readonly ?array $gatewayRow = null)
+    {
+    }
+
     public function name(): string
     {
         return 'platega';
@@ -15,18 +21,21 @@ final class PlategaGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        if (setting('pay_platega_on', '1') === '0') {
+        $row = $this->row();
+        if ($row && !(bool) $row['enabled']) {
             return false;
         }
-        return pay_cfg('pay_platega_merchant_id', 'PLATEGA_MERCHANT_ID') !== ''
-            && pay_cfg('pay_platega_secret', 'PLATEGA_SECRET') !== '';
+        return $this->cfg('merchant_id', pay_cfg('pay_platega_merchant_id', 'PLATEGA_MERCHANT_ID')) !== ''
+            && $this->cfg('secret', pay_cfg('pay_platega_secret', 'PLATEGA_SECRET')) !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $merchantId = pay_cfg('pay_platega_merchant_id', 'PLATEGA_MERCHANT_ID');
-        $secret = pay_cfg('pay_platega_secret', 'PLATEGA_SECRET');
-        $base = rtrim(pay_cfg('pay_platega_api_base', 'PLATEGA_API_BASE', 'https://app.platega.io'), '/');
+        $row = $this->row() ?? [];
+        $merchantId = $this->cfg('merchant_id', pay_cfg('pay_platega_merchant_id', 'PLATEGA_MERCHANT_ID'));
+        $secret = $this->cfg('secret', pay_cfg('pay_platega_secret', 'PLATEGA_SECRET'));
+        $base = rtrim($this->cfg('api_base_url', pay_cfg('pay_platega_api_base', 'PLATEGA_API_BASE', 'https://app.platega.io')), '/');
+        $path = '/' . ltrim($this->cfg('api_create_path', '/v2/transaction/process'), '/');
 
         $paymentId = Payment::create(
             (int) $order['id'],
@@ -36,26 +45,28 @@ final class PlategaGateway implements PaymentGatewayInterface
             'pending'
         );
 
+        $amount = PaymentService::chargeAmount($row, (float) $order['amount']);
         $payload = [
-            'command' => 'process',
+            'command' => $this->cfg('command', 'process') ?: 'process',
             'paymentDetails' => [
-                'amount' => round((float) $order['amount'], 2),
-                'currency' => 'RUB',
+                'amount' => round($amount, 2),
+                'currency' => $this->cfg('currency', 'RUB') ?: 'RUB',
             ],
             'description' => 'WL Sales #' . $order['id'],
-            'return' => app_url('/account/orders/' . $order['id']),
-            'failedUrl' => app_url('/pay/' . $order['id']),
+            'return' => $this->cfg('return_url', app_url('/account/orders/' . $order['id'])),
+            'failedUrl' => $this->cfg('failed_url', app_url('/pay/' . $order['id'])),
             'payload' => json_encode([
                 'payment_id' => $paymentId,
                 'order_id' => (int) $order['id'],
             ], JSON_UNESCAPED_UNICODE),
         ];
-        $method = pay_cfg('pay_platega_payment_method', 'PLATEGA_PAYMENT_METHOD');
+        $method = $this->cfg('payment_method', pay_cfg('pay_platega_payment_method', 'PLATEGA_PAYMENT_METHOD'));
         if ($method !== '') {
             $payload['paymentMethod'] = ctype_digit($method) ? (int) $method : $method;
         }
 
-        $ch = curl_init($base . '/v2/transaction/process');
+        $timeout = max(5, min(60, (int) $this->cfg('api_timeout_sec', '25')));
+        $ch = curl_init($base . $path);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
@@ -66,7 +77,7 @@ final class PlategaGateway implements PaymentGatewayInterface
                 'Accept: application/json',
             ],
             CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => $timeout,
         ]);
         $raw = (string) curl_exec($ch);
         curl_close($ch);
@@ -116,5 +127,23 @@ final class PlategaGateway implements PaymentGatewayInterface
         }
         Payment::updateStatus((int) $payment['id'], 'succeeded', json_encode($payload, JSON_UNESCAPED_UNICODE));
         OrderService::markPaid((int) $payment['order_id'], $this->name());
+    }
+
+    private function cfg(string $key, string $default = ''): string
+    {
+        $row = $this->row();
+        if ($row) {
+            $v = PaymentGateway::cfgString($row, $key);
+            if ($v !== '') {
+                return $v;
+            }
+        }
+        return $default;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function row(): ?array
+    {
+        return $this->gatewayRow ?? PaymentGateway::findByCode('platega');
     }
 }
