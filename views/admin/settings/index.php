@@ -49,14 +49,5 @@ $s = $settings;
     <button class="btn btn-primary" type="submit">Сохранить</button>
     <button class="btn btn-ghost" type="submit" name="tg_test" value="1">Тест Telegram</button>
   </p>
-  <div class="panel-card" style="margin-top:1rem;background:#fffbeb;border-color:#fde68a">
-    <strong>Платёжные шлюзы (.env)</strong>
-    <p style="font-size:0.88rem;margin:0.5rem 0 0">Как в fullvpnservice — ключи в окружении, пустые = скрыты на оплате:</p>
-    <ul style="font-size:0.85rem;margin:0.4rem 0 0;color:#4b5563">
-      <li><code>YOOKASSA_SHOP_ID</code> / <code>YOOKASSA_SECRET_KEY</code> → webhook <code>/webhooks/yookassa</code></li>
-      <li><code>FREEKASSA_SHOP_ID</code> / <code>FREEKASSA_API_KEY</code> / <code>FREEKASSA_SECRET_WORD_2</code> → <code>/webhooks/freekassa</code> (СБП, карты РФ, world USD)</li>
-      <li><code>PLATEGA_MERCHANT_ID</code> / <code>PLATEGA_SECRET</code> → <code>/webhooks/platega</code></li>
-      <li><code>NOWPAYMENTS_API_KEY</code> / <code>NOWPAYMENTS_IPN_SECRET</code> → <code>/webhooks/nowpayments</code></li>
-    </ul>
-  </div>
+  <p style="margin-top:1rem;font-size:0.9rem">Ключи ЮKassa / FreeKassa / Platega / NOWPayments — в разделе <a href="/admin/payments/gateways">Платёжные системы</a>.</p>
 </form>

@@ -1,3 +1,5 @@
+<p style="margin-top:0"><a class="btn btn-ghost btn-sm" href="/admin/payments/gateways">Настроить платёжные системы</a></p>
+
 <?php if ($waiting): ?>
   <h2 style="font-size:1.1rem">Ожидают подтверждения</h2>
   <div class="table-wrap card-soft" style="margin-bottom:1.2rem">

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Env;
 use App\Models\Order;
 use App\Models\Payment;
 
@@ -17,16 +16,19 @@ final class YooKassaGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        $shop = Env::get('YOOKASSA_SHOP_ID', '');
-        $secret = Env::get('YOOKASSA_SECRET_KEY', '');
-        return $shop !== '' && $secret !== '' && $shop !== null && $secret !== null;
+        if (setting('pay_yookassa_on', '1') === '0') {
+            return false;
+        }
+        $shop = pay_cfg('pay_yookassa_shop_id', 'YOOKASSA_SHOP_ID');
+        $secret = pay_cfg('pay_yookassa_secret_key', 'YOOKASSA_SECRET_KEY');
+        return $shop !== '' && $secret !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $shopId = (string) Env::get('YOOKASSA_SHOP_ID');
-        $secret = (string) Env::get('YOOKASSA_SECRET_KEY');
-        $returnUrl = (string) Env::get('YOOKASSA_RETURN_URL', app_url('/account/orders'));
+        $shopId = pay_cfg('pay_yookassa_shop_id', 'YOOKASSA_SHOP_ID');
+        $secret = pay_cfg('pay_yookassa_secret_key', 'YOOKASSA_SECRET_KEY');
+        $returnUrl = pay_cfg('pay_yookassa_return_url', 'YOOKASSA_RETURN_URL', app_url('/account/orders'));
         $idempotenceKey = bin2hex(random_bytes(16));
 
         $payload = [

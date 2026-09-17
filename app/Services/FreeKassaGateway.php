@@ -24,16 +24,19 @@ final class FreeKassaGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        $shop = trim((string) Env::get('FREEKASSA_SHOP_ID', ''));
-        $key = trim((string) Env::get('FREEKASSA_API_KEY', ''));
+        if (setting('pay_freekassa_on', '1') === '0') {
+            return false;
+        }
+        $shop = pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID');
+        $key = pay_cfg('pay_freekassa_api_key', 'FREEKASSA_API_KEY');
         return $shop !== '' && $key !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $shopId = (int) Env::get('FREEKASSA_SHOP_ID', '0');
-        $apiKey = (string) Env::get('FREEKASSA_API_KEY', '');
-        $base = rtrim((string) Env::get('FREEKASSA_API_BASE', 'https://api.fk.life/v1'), '/');
+        $shopId = (int) pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID', '0');
+        $apiKey = pay_cfg('pay_freekassa_api_key', 'FREEKASSA_API_KEY');
+        $base = rtrim(pay_cfg('pay_freekassa_api_base', 'FREEKASSA_API_BASE', 'https://api.fk.life/v1'), '/');
         $method = $this->paymentMethod();
 
         $amount = round((float) $order['amount'], 2);
@@ -106,12 +109,12 @@ final class FreeKassaGateway implements PaymentGatewayInterface
 
     public function handleWebhook(array $payload): void
     {
-        $secret2 = trim((string) Env::get('FREEKASSA_SECRET_WORD_2', ''));
+        $secret2 = pay_cfg('pay_freekassa_secret_word_2', 'FREEKASSA_SECRET_WORD_2');
         $merchantId = trim((string) ($payload['MERCHANT_ID'] ?? ''));
         $amount = trim((string) ($payload['AMOUNT'] ?? ''));
         $orderId = trim((string) ($payload['MERCHANT_ORDER_ID'] ?? ''));
         $sign = strtolower(trim((string) ($payload['SIGN'] ?? '')));
-        $shop = trim((string) Env::get('FREEKASSA_SHOP_ID', ''));
+        $shop = pay_cfg('pay_freekassa_shop_id', 'FREEKASSA_SHOP_ID');
 
         if ($secret2 !== '') {
             $calc = md5($merchantId . ':' . $amount . ':' . $secret2 . ':' . $orderId);

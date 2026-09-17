@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Env;
 use App\Models\Payment;
 
 final class PlategaGateway implements PaymentGatewayInterface
@@ -16,15 +15,18 @@ final class PlategaGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        return trim((string) Env::get('PLATEGA_MERCHANT_ID', '')) !== ''
-            && trim((string) Env::get('PLATEGA_SECRET', '')) !== '';
+        if (setting('pay_platega_on', '1') === '0') {
+            return false;
+        }
+        return pay_cfg('pay_platega_merchant_id', 'PLATEGA_MERCHANT_ID') !== ''
+            && pay_cfg('pay_platega_secret', 'PLATEGA_SECRET') !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $merchantId = (string) Env::get('PLATEGA_MERCHANT_ID', '');
-        $secret = (string) Env::get('PLATEGA_SECRET', '');
-        $base = rtrim((string) Env::get('PLATEGA_API_BASE', 'https://app.platega.io'), '/');
+        $merchantId = pay_cfg('pay_platega_merchant_id', 'PLATEGA_MERCHANT_ID');
+        $secret = pay_cfg('pay_platega_secret', 'PLATEGA_SECRET');
+        $base = rtrim(pay_cfg('pay_platega_api_base', 'PLATEGA_API_BASE', 'https://app.platega.io'), '/');
 
         $paymentId = Payment::create(
             (int) $order['id'],
@@ -48,7 +50,7 @@ final class PlategaGateway implements PaymentGatewayInterface
                 'order_id' => (int) $order['id'],
             ], JSON_UNESCAPED_UNICODE),
         ];
-        $method = trim((string) Env::get('PLATEGA_PAYMENT_METHOD', ''));
+        $method = pay_cfg('pay_platega_payment_method', 'PLATEGA_PAYMENT_METHOD');
         if ($method !== '') {
             $payload['paymentMethod'] = ctype_digit($method) ? (int) $method : $method;
         }

@@ -16,13 +16,16 @@ final class NowPaymentsGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        return trim((string) Env::get('NOWPAYMENTS_API_KEY', '')) !== '';
+        if (setting('pay_nowpayments_on', '1') === '0') {
+            return false;
+        }
+        return pay_cfg('pay_nowpayments_api_key', 'NOWPAYMENTS_API_KEY') !== '';
     }
 
     public function createPayment(array $order): array
     {
-        $key = (string) Env::get('NOWPAYMENTS_API_KEY', '');
-        $payCurrency = strtolower(trim((string) Env::get('NOWPAYMENTS_PAY_CURRENCY', 'usdttrc20')));
+        $key = pay_cfg('pay_nowpayments_api_key', 'NOWPAYMENTS_API_KEY');
+        $payCurrency = strtolower(pay_cfg('pay_nowpayments_pay_currency', 'NOWPAYMENTS_PAY_CURRENCY', 'usdttrc20'));
 
         $paymentId = Payment::create(
             (int) $order['id'],

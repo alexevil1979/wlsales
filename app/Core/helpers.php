@@ -131,3 +131,21 @@ function now_dt(): string
 {
     return date('Y-m-d H:i:s');
 }
+
+/**
+ * Конфиг платежей: сначала settings (админка), затем .env.
+ */
+function pay_cfg(string $settingKey, string $envKey = '', string $default = ''): string
+{
+    $fromSettings = trim(setting($settingKey, ''));
+    if ($fromSettings !== '') {
+        return $fromSettings;
+    }
+    if ($envKey !== '') {
+        $fromEnv = trim((string) \App\Core\Env::get($envKey, ''));
+        if ($fromEnv !== '') {
+            return $fromEnv;
+        }
+    }
+    return $default;
+}

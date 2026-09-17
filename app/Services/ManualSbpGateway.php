@@ -15,7 +15,7 @@ final class ManualSbpGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        return true; // всегда доступен; реквизиты из settings
+        return setting('pay_manual_sbp_on', '1') !== '0';
     }
 
     public function createPayment(array $order): array

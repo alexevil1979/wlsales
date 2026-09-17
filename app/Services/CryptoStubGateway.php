@@ -15,7 +15,11 @@ final class CryptoStubGateway implements PaymentGatewayInterface
 
     public function isEnabled(): bool
     {
-        return setting('crypto_usdt_trc20') !== '' && setting('crypto_usdt_trc20') !== 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+        if (setting('pay_crypto_on', '1') === '0') {
+            return false;
+        }
+        $addr = setting('crypto_usdt_trc20', '');
+        return $addr !== '' && $addr !== 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
     }
 
     public function createPayment(array $order): array

@@ -82,11 +82,9 @@ GET https://wlsales.1tlt.ru/cron?token=YOUR_APP_KEY
 
 ## Оплата
 
-### Ручной СБП / USDT
-В админке → Настройки. Клиент жмёт «Я оплатил», админ подтверждает.
-
-### ЮKassa / FreeKassa / Platega / NOWPayments
-Ключи в `.env` (см. `.env.example`). Пустые ключи — способ скрыт.
+### Ручной СБП / USDT / шлюзы
+Админка → **Платёжные системы** (`/admin/payments/gateways`): ключи, включение/выключение, webhook URL.
+Значения из админки имеют приоритет над `.env`. Пустые ключи — способ скрыт на оплате.
 
 Webhooks:
 - `POST /webhooks/yookassa`

@@ -3,7 +3,13 @@
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $user = \App\Core\Auth::user();
 $link = static function (string $href, string $label) use ($path): string {
-    $active = $href === '/admin' ? ($path === '/admin') : str_starts_with($path, $href);
+    if ($href === '/admin') {
+        $active = $path === '/admin';
+    } elseif ($href === '/admin/payments') {
+        $active = $path === '/admin/payments' || (str_starts_with($path, '/admin/payments/') && !str_starts_with($path, '/admin/payments/gateways'));
+    } else {
+        $active = str_starts_with($path, $href);
+    }
     return '<a href="' . e($href) . '" class="' . ($active ? 'is-active' : '') . '">' . e($label) . '</a>';
 };
 ?>
@@ -34,6 +40,7 @@ $link = static function (string $href, string $label) use ($path): string {
       <?= $link('/admin/users', 'Пользователи') ?>
       <?= $link('/admin/tickets', 'Тикеты') ?>
       <div class="nav-section">Система</div>
+      <?= $link('/admin/payments/gateways', 'Платёжные системы') ?>
       <?= $link('/admin/settings', 'Настройки') ?>
     </nav>
     <a class="panel-footer-link" href="/">← На сайт</a>
