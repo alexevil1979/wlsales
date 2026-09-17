@@ -28,10 +28,12 @@ $link = static function (string $href, string $label) use ($path): string {
       <?= $link('/account', 'Обзор') ?>
       <?= $link('/account/orders', 'Заказы') ?>
       <?= $link('/account/servers', 'Серверы') ?>
+      <?= $link('/account/proxy', 'Белый вход') ?>
       <?= $link('/account/tickets', 'Тикеты') ?>
       <?= $link('/account/password', 'Пароль') ?>
       <div class="nav-section">Магазин</div>
-      <a href="/catalog">Каталог</a>
+      <a href="/catalog">Каталог VPS</a>
+      <a href="/proxy">Тарифы входа</a>
       <a href="/">На сайт</a>
     </nav>
     <form action="/logout" method="post" style="margin-top:1rem;padding:0 0.7rem">

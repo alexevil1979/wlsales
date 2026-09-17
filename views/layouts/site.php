@@ -25,6 +25,7 @@ $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
     <button class="nav-toggle" type="button" data-nav-toggle aria-label="Меню">Меню</button>
     <nav class="nav" data-nav>
       <a href="/catalog" class="<?= str_starts_with($path, '/catalog') ? 'is-active' : '' ?>">Каталог</a>
+      <a href="/proxy" class="<?= str_starts_with($path, '/proxy') ? 'is-active' : '' ?>">Белый вход для сайта</a>
       <a href="/how" class="<?= $path === '/how' ? 'is-active' : '' ?>">Как это работает</a>
       <a href="/faq" class="<?= $path === '/faq' ? 'is-active' : '' ?>">FAQ</a>
       <?php if ($user): ?>
@@ -56,6 +57,7 @@ $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
     <div>
       <strong style="color:var(--text)">Разделы</strong><br>
       <a href="/catalog">Каталог</a><br>
+      <a href="/proxy">Белый вход для сайта</a><br>
       <a href="/how">Как это работает</a><br>
       <a href="/faq">FAQ</a><br>
       <a href="/contacts">Контакты</a>

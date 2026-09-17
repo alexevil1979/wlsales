@@ -28,6 +28,7 @@ $link = static function (string $href, string $label) use ($path): string {
       <?= $link('/admin/products', 'Товары') ?>
       <?= $link('/admin/orders', 'Заказы') ?>
       <?= $link('/admin/payments', 'Платежи') ?>
+      <?= $link('/admin/proxy', 'Белый вход') ?>
       <div class="nav-section">Инфра</div>
       <?= $link('/admin/servers', 'Инвентарь') ?>
       <?= $link('/admin/users', 'Пользователи') ?>

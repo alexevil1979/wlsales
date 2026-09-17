@@ -12,9 +12,11 @@ final class Order
     public static function findById(int $id): ?array
     {
         $st = Database::pdo()->prepare(
-            'SELECT o.*, p.title AS product_title, p.slug AS product_slug, p.vendor, p.location, u.email AS user_email, u.name AS user_name
+            'SELECT o.*,
+                    p.title AS product_title, p.slug AS product_slug, p.vendor, p.location,
+                    u.email AS user_email, u.name AS user_name
              FROM orders o
-             JOIN products p ON p.id = o.product_id
+             LEFT JOIN products p ON p.id = o.product_id
              JOIN users u ON u.id = o.user_id
              WHERE o.id = ? LIMIT 1'
         );
@@ -23,12 +25,30 @@ final class Order
         return $row ?: null;
     }
 
-    public static function create(int $userId, int $productId, string $tariff, float $amount, string $status = 'awaiting_payment'): int
-    {
+    public static function create(
+        int $userId,
+        ?int $productId,
+        string $tariff,
+        float $amount,
+        string $status = 'awaiting_payment',
+        string $orderType = 'server',
+        ?int $refId = null
+    ): int {
         $st = Database::pdo()->prepare(
-            'INSERT INTO orders (user_id, product_id, tariff, amount, currency, status, created_at) VALUES (?,?,?,?,?,?,?)'
+            'INSERT INTO orders (user_id, order_type, product_id, ref_id, tariff, amount, currency, status, created_at)
+             VALUES (?,?,?,?,?,?,?,?,?)'
         );
-        $st->execute([$userId, $productId, $tariff, $amount, 'RUB', $status, now_dt()]);
+        $st->execute([
+            $userId,
+            $orderType,
+            $productId,
+            $refId,
+            $tariff,
+            $amount,
+            'RUB',
+            $status,
+            now_dt(),
+        ]);
         return (int) Database::pdo()->lastInsertId();
     }
 
@@ -36,9 +56,12 @@ final class Order
     public static function forUser(int $userId): array
     {
         $st = Database::pdo()->prepare(
-            'SELECT o.*, p.title AS product_title, p.vendor, p.location
-             FROM orders o JOIN products p ON p.id = o.product_id
-             WHERE o.user_id = ? ORDER BY o.id DESC'
+            "SELECT o.*,
+                    COALESCE(p.title, CONCAT('Proxy #', o.ref_id)) AS product_title,
+                    p.vendor, p.location
+             FROM orders o
+             LEFT JOIN products p ON p.id = o.product_id
+             WHERE o.user_id = ? ORDER BY o.id DESC"
         );
         $st->execute([$userId]);
         return $st->fetchAll();
@@ -47,10 +70,12 @@ final class Order
     /** @return list<array> */
     public static function allAdmin(?string $status = null, int $limit = 200): array
     {
-        $sql = 'SELECT o.*, p.title AS product_title, u.email AS user_email
+        $sql = "SELECT o.*,
+                       COALESCE(p.title, CONCAT('Proxy #', o.ref_id)) AS product_title,
+                       u.email AS user_email
                 FROM orders o
-                JOIN products p ON p.id = o.product_id
-                JOIN users u ON u.id = o.user_id';
+                LEFT JOIN products p ON p.id = o.product_id
+                JOIN users u ON u.id = o.user_id";
         $params = [];
         if ($status) {
             $sql .= ' WHERE o.status = ?';
@@ -112,7 +137,7 @@ final class Order
     {
         $pdo = Database::pdo();
         $sel = $pdo->prepare(
-            "SELECT id, product_id FROM orders
+            "SELECT id, product_id, order_type, ref_id FROM orders
              WHERE status = 'awaiting_payment' AND created_at < DATE_SUB(NOW(), INTERVAL ? HOUR)"
         );
         $sel->bindValue(1, $hours, PDO::PARAM_INT);
@@ -129,7 +154,12 @@ final class Order
         );
         foreach ($rows as $row) {
             $upd->execute([now_dt(), (int) $row['id']]);
-            $prod->execute([now_dt(), (int) $row['product_id']]);
+            if (($row['order_type'] ?? 'server') === 'server' && !empty($row['product_id'])) {
+                $prod->execute([now_dt(), (int) $row['product_id']]);
+            }
+            if (($row['order_type'] ?? '') === 'proxy' && !empty($row['ref_id'])) {
+                ProxySubscription::setStatus((int) $row['ref_id'], 'cancelled');
+            }
         }
         return count($rows);
     }

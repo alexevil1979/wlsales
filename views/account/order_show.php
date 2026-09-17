@@ -2,13 +2,20 @@
   <p><a href="/account/orders">← Заказы</a></p>
   <h1>Заказ #<?= (int)$order['id'] ?></h1>
   <div class="card-soft">
-    <p><strong><?= e($order['product_title']) ?></strong><br>
-      <?= e($order['vendor']) ?> · <?= e($order['location']) ?></p>
+    <p><strong><?= e($order['product_title'] ?: ('Заказ #' . $order['id'])) ?></strong><br>
+      <?php if (($order['order_type'] ?? 'server') === 'proxy'): ?>
+        Белый вход для сайта
+      <?php else: ?>
+        <?= e((string)($order['vendor'] ?? '')) ?> · <?= e((string)($order['location'] ?? '')) ?>
+      <?php endif; ?>
+    </p>
     <p>Тариф: <?= e(tariff_label($order['tariff'])) ?><br>
       Сумма: <strong><?= money($order['amount']) ?></strong><br>
       Статус: <span class="pill"><?= e(order_status_label($order['status'])) ?></span></p>
     <?php if ($order['status'] === 'awaiting_payment'): ?>
       <p><a class="btn btn-primary" href="/pay/<?= (int)$order['id'] ?>">Перейти к оплате</a></p>
+    <?php elseif (($order['order_type'] ?? '') === 'proxy' && in_array($order['status'], ['paid', 'delivered'], true)): ?>
+      <p class="flash flash-success" style="margin:0">Оплата получена. Управляйте доменами в <a href="/account/proxy">белом входе</a><?= !empty($order['ref_id']) ? ' / <a href="/account/proxy/' . (int)$order['ref_id'] . '">подписке #' . (int)$order['ref_id'] . '</a>' : '' ?>.</p>
     <?php elseif (in_array($order['status'], ['paid', 'pending_stock'], true)): ?>
       <p class="flash flash-success" style="margin:0">Оплата получена. Ожидайте выдачи доступов в кабинете.</p>
     <?php endif; ?>

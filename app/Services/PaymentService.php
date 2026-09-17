@@ -48,6 +48,7 @@ final class PaymentService
             'platega' => 'Platega',
             'nowpayments' => 'NOWPayments (crypto)',
             'crypto_usdt' => 'USDT TRC20 (вручную)',
+            'proxy' => 'Белый вход',
             default => $code,
         };
     }

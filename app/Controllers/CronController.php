@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Env;
 use App\Core\RateLimiter;
 use App\Models\Order;
+use App\Services\ProxyService;
 
 final class CronController
 {
@@ -23,6 +24,7 @@ final class CronController
 
         $n = Order::expireUnpaid(48);
         RateLimiter::clearOld();
-        echo "expired={$n}\n";
+        $renew = ProxyService::processRenewals();
+        echo "expired={$n}; proxy_reminded={$renew['reminded']}; proxy_suspended={$renew['suspended']}\n";
     }
 }

@@ -72,6 +72,7 @@ function tariff_label(string $tariff): string
         'inst2' => 'Рассрочка 2 недели',
         'inst4' => 'Рассрочка 4 недели',
         'forever' => 'Выкуп навсегда',
+        'proxy' => 'Белый вход / мес',
         default => $tariff,
     };
 }

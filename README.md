@@ -28,6 +28,7 @@ cp .env.example .env
 mysql -u root -p -e "CREATE DATABASE wlsales CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p wlsales < sql/schema.sql
 mysql -u root -p wlsales < sql/seed.sql
+mysql -u root -p wlsales < sql/002_proxy.sql
 ```
 
 4. Права на запись:
@@ -111,6 +112,34 @@ composer require phpmailer/phpmailer
 
 и в `.env`: `MAIL_DRIVER=phpmailer` + SMTP-поля.
 
+## Белый вход для сайта (proxy)
+
+Вторая линейка: клиент ставит A-запись на наш публичный IP, мы поднимаем HTTPS + reverse proxy на его origin.
+
+- Витрина: `/proxy`
+- Кабинет: `/account/proxy`
+- Админка: `/admin/proxy` (ноды, подписки, очередь DNS, nginx-сниппет)
+
+### Миграция на уже развёрнутой БД
+
+```bash
+mysql -u root -p wlsales < sql/002_proxy.sql
+```
+
+### Как админу поднять домен на ноде
+
+1. Назначить подписке ноду в `/admin/proxy`.
+2. Клиент ставит A `@` и `www` на `node.public_ip` (Cloudflare — серое облако).
+3. «Проверить DNS» в очереди — A должен совпасть с IP ноды.
+4. «Сниппет» → скопировать nginx `server{}` на ноду (обычно `/etc/nginx/sites-available/`).
+5. На ноде: `nginx -t && systemctl reload nginx`
+6. `certbot --nginx -d example.ru -d www.example.ru`
+7. В админке: `ssl_status=issued`, при необходимости `status=active`, галка origin ок.
+
+Лимит доменов на ноду — `domains_cap`. Не выдавайте тот же сервер как dedicated VPS, если на ноде уже есть чужие `proxy_domains` (проверка при выдаче заказа).
+
+Продление: cron раз в день — за 3 дня письмо, в день `period_end` → `suspended`.
+
 ## Безопасность
 
 - CSRF на всех POST
@@ -130,7 +159,7 @@ app/Controllers/ публичные + Admin/*
 app/Models/      User, Product, Order, Payment, Server, Ticket…
 app/Services/    PaymentGateway (ManualSbp, YooKassa, CryptoStub)
 views/           layouts + страницы
-sql/             schema.sql, seed.sql
+sql/             schema.sql, seed.sql, 002_proxy.sql
 ```
 
 ## Разработка без Apache

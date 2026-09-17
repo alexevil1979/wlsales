@@ -72,6 +72,11 @@
               <?= \App\Core\Csrf::field() ?>
               <button class="btn btn-danger btn-sm" type="submit">Удалить</button>
             </form>
+            <form method="post" action="/admin/servers/<?= (int)$s['id'] ?>/make-proxy-node" style="margin-top:0.4rem">
+              <?= \App\Core\Csrf::field() ?>
+              <input type="hidden" name="domains_cap" value="50">
+              <button class="btn btn-ghost btn-sm" type="submit">Использовать как proxy-ноду</button>
+            </form>
           </details>
         </td>
       </tr>
