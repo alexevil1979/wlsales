@@ -78,6 +78,9 @@ final class ProxyService
 
     public static function processRenewals(): array
     {
+        if (!\App\Core\Database::hasTable('proxy_subscriptions')) {
+            return ['reminded' => 0, 'suspended' => 0];
+        }
         $reminded = 0;
         foreach (ProxySubscription::expiringInDays(3) as $sub) {
             Mailer::send(

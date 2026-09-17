@@ -18,6 +18,15 @@ final class GatewaysController
     public function index(): void
     {
         GatewaySeeder::ensureSeeded();
+        if (!\App\Core\Database::hasTable('payment_gateways')) {
+            View::render('admin/payments/gateways_missing', [
+                'title' => 'Платёжные шлюзы',
+                'breadcrumbs' => [
+                    ['label' => 'Платёжные шлюзы'],
+                ],
+            ], 'admin');
+            return;
+        }
         $q = trim((string) ($_GET['q'] ?? ''));
         $enabled = (string) ($_GET['enabled'] ?? '');
         $test = (string) ($_GET['test_mode'] ?? '');
@@ -133,15 +142,30 @@ final class GatewaysController
 
     public function toggle(string $id): void
     {
-        Csrf::requireValid();
+        $wantsJson = str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json')
+            || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+
+        if (!Csrf::verify()) {
+            if ($wantsJson) {
+                header('Content-Type: application/json; charset=utf-8');
+                http_response_code(419);
+                echo json_encode(['ok' => false, 'message' => 'csrf'], JSON_UNESCAPED_UNICODE);
+                return;
+            }
+            Csrf::requireValid();
+            return;
+        }
+
         $gw = PaymentGateway::findById((int) $id);
         if (!$gw) {
-            $this->toggleRespond(false, 'not found');
+            if ($wantsJson) {
+                $this->toggleRespond(false, 'not found');
+                return;
+            }
+            redirect('/admin/payments/gateways');
             return;
         }
         $field = (string) ($_POST['field'] ?? 'enabled');
-        $value = !empty($_POST['value']) || (string) ($_POST['value'] ?? '') === '1';
-        // если value не передан — инвертируем
         if (!isset($_POST['value'])) {
             $value = $field === 'test_mode' ? empty($gw['test_mode']) : empty($gw['enabled']);
         } else {
@@ -156,8 +180,6 @@ final class GatewaysController
         }
         AdminLog::write((int) Auth::id(), 'payment_gateway_toggle:' . $gw['code'] . ':' . $field, client_ip());
 
-        $wantsJson = str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json')
-            || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
         if ($wantsJson) {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['ok' => true, 'field' => $field, 'value' => $value], JSON_UNESCAPED_UNICODE);

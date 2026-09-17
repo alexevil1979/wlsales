@@ -11,6 +11,12 @@ final class Database
 {
     private static ?PDO $pdo = null;
 
+    /** @var array<string, bool> */
+    private static array $tableCache = [];
+
+    /** @var array<string, bool> */
+    private static array $columnCache = [];
+
     public static function pdo(): PDO
     {
         if (self::$pdo instanceof PDO) {
@@ -49,5 +55,41 @@ final class Database
         }
 
         return self::$pdo;
+    }
+
+    public static function hasTable(string $table): bool
+    {
+        if (array_key_exists($table, self::$tableCache)) {
+            return self::$tableCache[$table];
+        }
+        try {
+            $st = self::pdo()->prepare(
+                'SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1'
+            );
+            $st->execute([$table]);
+            self::$tableCache[$table] = (bool) $st->fetchColumn();
+        } catch (\Throwable) {
+            self::$tableCache[$table] = false;
+        }
+        return self::$tableCache[$table];
+    }
+
+    public static function hasColumn(string $table, string $column): bool
+    {
+        $key = $table . '.' . $column;
+        if (array_key_exists($key, self::$columnCache)) {
+            return self::$columnCache[$key];
+        }
+        try {
+            $st = self::pdo()->prepare(
+                'SELECT 1 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1'
+            );
+            $st->execute([$table, $column]);
+            self::$columnCache[$key] = (bool) $st->fetchColumn();
+        } catch (\Throwable) {
+            self::$columnCache[$key] = false;
+        }
+        return self::$columnCache[$key];
     }
 }

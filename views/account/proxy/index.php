@@ -24,6 +24,10 @@ $domStatus = static function (string $s): string {
   <p style="margin:0.6rem 0 0"><a class="btn btn-primary btn-sm" href="/proxy">Смотреть тарифы входа</a></p>
 </div>
 
+<?php if (!empty($missingSchema)): ?>
+<div class="panel-card"><p class="flash flash-error" style="margin:0">Таблицы белого входа ещё не созданы. Админу: выполните <code>sql/002_proxy.sql</code> на VPS.</p></div>
+<?php else: ?>
+
 <div class="panel-card" style="margin-bottom:1rem">
   <h2 style="font-size:1.05rem;margin-top:0">Подписки</h2>
   <div class="table-wrap">
@@ -82,3 +86,4 @@ $domStatus = static function (string $s): string {
     <p style="margin-top:0.8rem"><button class="btn btn-primary btn-sm" type="submit">Создать тикет</button></p>
   </form>
 </div>
+<?php endif; ?>

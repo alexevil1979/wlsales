@@ -13,7 +13,8 @@ final class Order
     {
         $st = Database::pdo()->prepare(
             'SELECT o.*,
-                    p.title AS product_title, p.slug AS product_slug, p.vendor, p.location,
+                    ' . self::titleSelect() . ',
+                    p.slug AS product_slug, p.vendor, p.location,
                     u.email AS user_email, u.name AS user_name
              FROM orders o
              LEFT JOIN products p ON p.id = o.product_id
@@ -34,21 +35,37 @@ final class Order
         string $orderType = 'server',
         ?int $refId = null
     ): int {
-        $st = Database::pdo()->prepare(
-            'INSERT INTO orders (user_id, order_type, product_id, ref_id, tariff, amount, currency, status, created_at)
-             VALUES (?,?,?,?,?,?,?,?,?)'
-        );
-        $st->execute([
-            $userId,
-            $orderType,
-            $productId,
-            $refId,
-            $tariff,
-            $amount,
-            'RUB',
-            $status,
-            now_dt(),
-        ]);
+        if (Database::hasColumn('orders', 'order_type')) {
+            $st = Database::pdo()->prepare(
+                'INSERT INTO orders (user_id, order_type, product_id, ref_id, tariff, amount, currency, status, created_at)
+                 VALUES (?,?,?,?,?,?,?,?,?)'
+            );
+            $st->execute([
+                $userId,
+                $orderType,
+                $productId,
+                $refId,
+                $tariff,
+                $amount,
+                'RUB',
+                $status,
+                now_dt(),
+            ]);
+        } else {
+            $st = Database::pdo()->prepare(
+                'INSERT INTO orders (user_id, product_id, tariff, amount, currency, status, created_at)
+                 VALUES (?,?,?,?,?,?,?)'
+            );
+            $st->execute([
+                $userId,
+                $productId,
+                $tariff,
+                $amount,
+                'RUB',
+                $status,
+                now_dt(),
+            ]);
+        }
         return (int) Database::pdo()->lastInsertId();
     }
 
@@ -56,12 +73,12 @@ final class Order
     public static function forUser(int $userId): array
     {
         $st = Database::pdo()->prepare(
-            "SELECT o.*,
-                    COALESCE(p.title, CONCAT('Proxy #', o.ref_id)) AS product_title,
+            'SELECT o.*,
+                    ' . self::titleSelect() . ',
                     p.vendor, p.location
              FROM orders o
              LEFT JOIN products p ON p.id = o.product_id
-             WHERE o.user_id = ? ORDER BY o.id DESC"
+             WHERE o.user_id = ? ORDER BY o.id DESC'
         );
         $st->execute([$userId]);
         return $st->fetchAll();
@@ -70,12 +87,12 @@ final class Order
     /** @return list<array> */
     public static function allAdmin(?string $status = null, int $limit = 200): array
     {
-        $sql = "SELECT o.*,
-                       COALESCE(p.title, CONCAT('Proxy #', o.ref_id)) AS product_title,
+        $sql = 'SELECT o.*,
+                       ' . self::titleSelect() . ',
                        u.email AS user_email
                 FROM orders o
                 LEFT JOIN products p ON p.id = o.product_id
-                JOIN users u ON u.id = o.user_id";
+                JOIN users u ON u.id = o.user_id';
         $params = [];
         if ($status) {
             $sql .= ' WHERE o.status = ?';
@@ -136,8 +153,12 @@ final class Order
     public static function expireUnpaid(int $hours = 48): int
     {
         $pdo = Database::pdo();
+        $cols = 'id, product_id';
+        if (Database::hasColumn('orders', 'order_type')) {
+            $cols .= ', order_type, ref_id';
+        }
         $sel = $pdo->prepare(
-            "SELECT id, product_id, order_type, ref_id FROM orders
+            "SELECT {$cols} FROM orders
              WHERE status = 'awaiting_payment' AND created_at < DATE_SUB(NOW(), INTERVAL ? HOUR)"
         );
         $sel->bindValue(1, $hours, PDO::PARAM_INT);
@@ -154,13 +175,22 @@ final class Order
         );
         foreach ($rows as $row) {
             $upd->execute([now_dt(), (int) $row['id']]);
-            if (($row['order_type'] ?? 'server') === 'server' && !empty($row['product_id'])) {
+            $type = (string) ($row['order_type'] ?? 'server');
+            if ($type === 'server' && !empty($row['product_id'])) {
                 $prod->execute([now_dt(), (int) $row['product_id']]);
             }
-            if (($row['order_type'] ?? '') === 'proxy' && !empty($row['ref_id'])) {
+            if ($type === 'proxy' && !empty($row['ref_id']) && Database::hasTable('proxy_subscriptions')) {
                 ProxySubscription::setStatus((int) $row['ref_id'], 'cancelled');
             }
         }
         return count($rows);
+    }
+
+    private static function titleSelect(): string
+    {
+        if (Database::hasColumn('orders', 'ref_id')) {
+            return "COALESCE(p.title, CONCAT('Proxy #', o.ref_id), CONCAT('Заказ #', o.id)) AS product_title";
+        }
+        return "COALESCE(p.title, CONCAT('Заказ #', o.id)) AS product_title";
     }
 }

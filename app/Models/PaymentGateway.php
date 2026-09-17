@@ -19,6 +19,9 @@ final class PaymentGateway
 
     public static function findById(int $id): ?array
     {
+        if (!Database::hasTable('payment_gateways')) {
+            return null;
+        }
         $st = Database::pdo()->prepare('SELECT * FROM payment_gateways WHERE id = ? LIMIT 1');
         $st->execute([$id]);
         $row = $st->fetch();
@@ -27,6 +30,9 @@ final class PaymentGateway
 
     public static function findByCode(string $code): ?array
     {
+        if (!Database::hasTable('payment_gateways')) {
+            return null;
+        }
         $st = Database::pdo()->prepare('SELECT * FROM payment_gateways WHERE code = ? LIMIT 1');
         $st->execute([strtolower(trim($code))]);
         $row = $st->fetch();
@@ -36,6 +42,9 @@ final class PaymentGateway
     /** @return list<array> */
     public static function all(bool $paymentOnly = true): array
     {
+        if (!Database::hasTable('payment_gateways')) {
+            return [];
+        }
         $sql = 'SELECT * FROM payment_gateways';
         if ($paymentOnly) {
             $placeholders = implode(',', array_fill(0, count(self::INTERNAL_ONLY_CODES), '?'));

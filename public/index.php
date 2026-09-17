@@ -33,4 +33,23 @@ if (PHP_SAPI === 'cli') {
 $router = require dirname(__DIR__) . '/app/routes.php';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
-$router->dispatch($method, $uri);
+
+try {
+    $router->dispatch($method, $uri);
+} catch (Throwable $e) {
+    $logDir = dirname(__DIR__) . '/storage/logs';
+    if (is_dir($logDir) && is_writable($logDir)) {
+        @file_put_contents(
+            $logDir . '/app.log',
+            date('c') . ' ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n",
+            FILE_APPEND
+        );
+    }
+    http_response_code(500);
+    if (\App\Core\Env::bool('APP_DEBUG')) {
+        header('Content-Type: text/plain; charset=utf-8');
+        echo $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString();
+        exit;
+    }
+    echo 'Внутренняя ошибка сервера.';
+}

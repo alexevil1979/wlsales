@@ -21,6 +21,10 @@
 
   <p class="disclaimer">Вход с проверенного публичного IP. Проверка доступности перед подключением. Замена входа — по регламенту через тикет. Мы не обещаем «обход любых ограничений навсегда».</p>
 
+  <?php if (!empty($missingSchema)): ?>
+    <p class="flash flash-error">Раздел временно недоступен: на сервере ещё не применены миграции БД (sql/002_proxy.sql).</p>
+  <?php else: ?>
+
   <div class="section-head" style="margin-top:2rem">
     <h2>Калькулятор</h2>
     <p>Сколько доменов нужно — подскажем подходящий план.</p>
@@ -90,4 +94,5 @@
     <a class="btn btn-primary" href="#plans">Смотреть тарифы входа</a>
     <a class="btn btn-ghost" href="/catalog">Каталог VPS</a>
   </p>
+  <?php endif; ?>
 </section>

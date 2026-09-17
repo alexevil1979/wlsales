@@ -4,6 +4,35 @@ declare(strict_types=1);
 
 use App\Core\Env;
 
+/** Полифиллы mbstring — без расширения падают все страницы с админ/ЛК-лейаутом. */
+if (!function_exists('mb_substr')) {
+    function mb_substr(string $string, int $start, ?int $length = null, ?string $encoding = null): string
+    {
+        if ($length === null) {
+            return substr($string, $start);
+        }
+        return substr($string, $start, $length);
+    }
+}
+if (!function_exists('mb_strtolower')) {
+    function mb_strtolower(string $string, ?string $encoding = null): string
+    {
+        return strtolower($string);
+    }
+}
+if (!function_exists('mb_strlen')) {
+    function mb_strlen(string $string, ?string $encoding = null): int
+    {
+        return strlen($string);
+    }
+}
+if (!function_exists('mb_strtoupper')) {
+    function mb_strtoupper(string $string, ?string $encoding = null): string
+    {
+        return strtoupper($string);
+    }
+}
+
 function e(?string $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

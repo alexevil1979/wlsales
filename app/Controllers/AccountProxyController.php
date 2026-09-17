@@ -19,6 +19,15 @@ final class AccountProxyController
 {
     public function index(): void
     {
+        if (!\App\Core\Database::hasTable('proxy_subscriptions')) {
+            View::render('account/proxy/index', [
+                'title' => 'Белый вход',
+                'subscriptions' => [],
+                'domains' => [],
+                'missingSchema' => true,
+            ], 'account');
+            return;
+        }
         $user = Auth::user();
         $subs = ProxySubscription::forUser((int) $user['id']);
         $domains = ProxyDomain::forUser((int) $user['id']);

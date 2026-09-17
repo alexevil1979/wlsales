@@ -19,6 +19,15 @@ final class ProxyAdminController
 {
     public function index(): void
     {
+        if (!\App\Core\Database::hasTable('proxy_nodes')) {
+            View::render('admin/proxy/missing', [
+                'title' => 'Белый вход',
+                'breadcrumbs' => [
+                    ['label' => 'Белый вход'],
+                ],
+            ], 'admin');
+            return;
+        }
         View::render('admin/proxy/index', [
             'title' => 'Белый вход',
             'nodes' => ProxyNode::all(),

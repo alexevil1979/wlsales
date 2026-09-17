@@ -34,10 +34,11 @@ final class OrdersController
             flash('error', 'Заказ не найден.');
             redirect('/admin/orders');
         }
+        $productId = !empty($order['product_id']) ? (int) $order['product_id'] : null;
         View::render('admin/orders/show', [
             'title' => 'Заказ #' . $order['id'],
             'order' => $order,
-            'servers' => Server::freeForProduct((int) $order['product_id']),
+            'servers' => Server::freeForProduct($productId),
             'allServers' => Server::allAdmin(),
         ], 'admin');
     }

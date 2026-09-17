@@ -9,7 +9,7 @@
   <div class="panel-card">
     <h2 class="fi-section-title">Детали</h2>
     <p>Клиент: <?= e($order['user_email']) ?> (<?= e($order['user_name']) ?>)</p>
-    <p>Лот: <?= e($order['product_title']) ?> · <?= e($order['vendor']) ?> / <?= e($order['location']) ?></p>
+    <p>Лот: <?= e((string)($order['product_title'] ?? ('Заказ #' . $order['id']))) ?><?php if (!empty($order['vendor']) || !empty($order['location'])): ?> · <?= e((string)($order['vendor'] ?? '')) ?> / <?= e((string)($order['location'] ?? '')) ?><?php endif; ?></p>
     <p>Тариф: <?= e(tariff_label($order['tariff'])) ?><br>
       Сумма: <strong><?= money($order['amount']) ?></strong><br>
       Провайдер: <?= e($order['payment_provider'] ?: '—') ?><br>

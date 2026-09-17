@@ -46,10 +46,8 @@ final class GatewaySeeder
 
     public static function ensureSeeded(): void
     {
-        try {
-            PaymentGateway::all(false);
-        } catch (\Throwable) {
-            return; // таблица ещё не создана
+        if (!\App\Core\Database::hasTable('payment_gateways')) {
+            return;
         }
 
         foreach (self::catalog() as $g) {

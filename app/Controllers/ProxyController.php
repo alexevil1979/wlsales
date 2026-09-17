@@ -15,6 +15,17 @@ final class ProxyController
 {
     public function index(): void
     {
+        if (!\App\Core\Database::hasTable('proxy_plans')) {
+            View::render('proxy/index', [
+                'title' => 'Белый вход для сайта — WL Sales',
+                'description' => 'Вход с проверенного публичного IP: DNS A → наш IP:443 → ваш origin.',
+                'plans' => [],
+                'domainsWanted' => 1,
+                'suggested' => null,
+                'missingSchema' => true,
+            ]);
+            return;
+        }
         $plans = ProxyPlan::active();
         $domainsWanted = isset($_GET['domains']) ? max(1, (int) $_GET['domains']) : 1;
         $suggested = ProxyPlan::suggestForDomains($domainsWanted);
