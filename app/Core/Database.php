@@ -33,12 +33,19 @@ final class Database
             ]);
             self::$pdo->exec("SET time_zone = '+03:00'");
         } catch (PDOException $e) {
-            if (Env::bool('APP_DEBUG')) {
+            $msg = 'Ошибка подключения к базе данных.';
+            if (PHP_SAPI === 'cli' || Env::bool('APP_DEBUG')) {
+                $msg .= ' ' . $e->getMessage()
+                    . ' (host=' . $host . '; db=' . $name . '; user=' . $user . ')';
+            }
+            if (Env::bool('APP_DEBUG') && PHP_SAPI !== 'cli') {
                 throw $e;
             }
-            http_response_code(500);
-            echo 'Ошибка подключения к базе данных.';
-            exit;
+            if (PHP_SAPI !== 'cli') {
+                http_response_code(500);
+            }
+            echo $msg . (PHP_SAPI === 'cli' ? "\n" : '');
+            exit(1);
         }
 
         return self::$pdo;
