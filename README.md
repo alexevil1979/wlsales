@@ -99,6 +99,8 @@ GET https://wlsales.1tlt.ru/cron?token=YOUR_APP_KEY
 Админка → **Платёжные шлюзы** (`/admin/payments/gateways`) — как Filament `PaymentGateway` в fullvpnservice:
 список записей (код, вкл/выкл, тест, мин. сумма), редактирование `config` по типам (ЮKassa, FreeKassa×3, Platega, NOWPayments, Overpay, FriendlyPay, Exnode, Pally, 1Plat, BetaTransfer и др.).
 
+Пошагово ЮKassa с момента регистрации аккаунта: [docs/yookassa-setup.md](docs/yookassa-setup.md) (shopId / secretKey / webhook → куда вставлять в админку; опционально SMTP Яндекса).
+
 Миграция на сервере:
 
 ```bash
