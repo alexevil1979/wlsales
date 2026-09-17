@@ -37,6 +37,8 @@ final class GatewaySeeder
             ['code' => 'friendlypay_card', 'name' => 'Friendly Pay (карты)'],
             ['code' => 'friendlypay_sbp', 'name' => 'Friendly Pay (СБП)'],
             ['code' => 'betatransfer', 'name' => 'BetaTransfer'],
+            ['code' => 'telegram_admin_notify', 'name' => 'Telegram admin notifications'],
+            ['code' => 'telegram_database_backup', 'name' => 'Telegram database backups'],
             ['code' => 'manual_sbp', 'name' => 'СБП / перевод вручную'],
             ['code' => 'crypto_usdt', 'name' => 'USDT TRC20 (вручную)'],
         ];

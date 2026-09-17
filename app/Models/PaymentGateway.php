@@ -98,6 +98,80 @@ final class PaymentGateway
         $st->execute([$enabled ? 1 : 0, now_dt(), $id]);
     }
 
+    public static function setTestMode(int $id, bool $testMode): void
+    {
+        $st = Database::pdo()->prepare('UPDATE payment_gateways SET test_mode = ?, updated_at = ? WHERE id = ?');
+        $st->execute([$testMode ? 1 : 0, now_dt(), $id]);
+    }
+
+    /**
+     * Список для админки (как Filament table): поиск, фильтры, legacy-коды скрыты по умолчанию.
+     *
+     * @return list<array>
+     */
+    public static function adminList(string $q = '', string $enabled = '', string $testMode = '', string $type = ''): array
+    {
+        /** @var list<string> $hiddenLegacy */
+        $hiddenLegacy = ['yookassa', 'tinkoff', 'sber', 'robokassa'];
+        $rows = self::all(false);
+        $q = mb_strtolower(trim($q));
+        $out = [];
+        foreach ($rows as $row) {
+            $code = strtolower((string) $row['code']);
+            if ($type !== 'legacy' && in_array($code, $hiddenLegacy, true)) {
+                continue;
+            }
+            if ($type === 'internal' && !in_array($code, self::INTERNAL_ONLY_CODES, true)) {
+                continue;
+            }
+            if ($type === 'payment' && in_array($code, self::INTERNAL_ONLY_CODES, true)) {
+                continue;
+            }
+            if ($enabled === '1' && !$row['enabled']) {
+                continue;
+            }
+            if ($enabled === '0' && $row['enabled']) {
+                continue;
+            }
+            if ($testMode === '1' && !$row['test_mode']) {
+                continue;
+            }
+            if ($testMode === '0' && $row['test_mode']) {
+                continue;
+            }
+            if ($q !== '') {
+                $hay = mb_strtolower($code . ' ' . (string) $row['name'] . ' ' . (string) ($row['config']['boosty_page_slug'] ?? ''));
+                if (!str_contains($hay, $q)) {
+                    continue;
+                }
+            }
+            $out[] = $row;
+        }
+        usort($out, static fn ($a, $b) => ((int) $b['id']) <=> ((int) $a['id']));
+        return $out;
+    }
+
+    public static function create(string $code, string $name, bool $enabled = false, bool $testMode = true, array $config = []): int
+    {
+        $code = strtolower(trim($code));
+        if ($code === '' || self::findByCode($code)) {
+            throw new \RuntimeException('Код шлюза пуст или уже существует');
+        }
+        $st = Database::pdo()->prepare(
+            'INSERT INTO payment_gateways (code, name, enabled, test_mode, min_amount_rub, config, created_at) VALUES (?,?,?,?,?,?,?)'
+        );
+        $st->execute([
+            $code,
+            $name,
+            $enabled ? 1 : 0,
+            $testMode ? 1 : 0,
+            0,
+            json_encode(self::cleanConfig($config), JSON_UNESCAPED_UNICODE),
+            now_dt(),
+        ]);
+        return (int) Database::pdo()->lastInsertId();
+    }
+
     /**
      * @param array<string, mixed> $config
      */

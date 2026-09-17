@@ -18,16 +18,55 @@ final class GatewaysController
     public function index(): void
     {
         GatewaySeeder::ensureSeeded();
-        $drivers = PaymentService::driverMap();
+        $q = trim((string) ($_GET['q'] ?? ''));
+        $enabled = (string) ($_GET['enabled'] ?? '');
+        $test = (string) ($_GET['test_mode'] ?? '');
+        $type = (string) ($_GET['type'] ?? '');
+
         View::render('admin/payments/gateways', [
             'title' => 'Платёжные шлюзы',
-            'gateways' => PaymentGateway::all(true),
-            'drivers' => $drivers,
+            'gateways' => PaymentGateway::adminList($q, $enabled, $test, $type),
+            'q' => $q,
+            'filterEnabled' => $enabled,
+            'filterTest' => $test,
+            'filterType' => $type,
+            'csrf' => Csrf::token(),
             'breadcrumbs' => [
-                ['label' => 'Админ', 'href' => '/admin'],
-                ['label' => 'Платёжные шлюзы'],
+                ['label' => 'Платёжные шлюзы', 'href' => '/admin/payments/gateways'],
+                ['label' => 'Список'],
             ],
         ], 'admin');
+    }
+
+    public function createForm(): void
+    {
+        View::render('admin/payments/gateway_create', [
+            'title' => 'Создать шлюз',
+            'breadcrumbs' => [
+                ['label' => 'Платёжные шлюзы', 'href' => '/admin/payments/gateways'],
+                ['label' => 'Создать'],
+            ],
+        ], 'admin');
+    }
+
+    public function create(): void
+    {
+        Csrf::requireValid();
+        $code = strtolower(trim((string) ($_POST['code'] ?? '')));
+        $name = trim((string) ($_POST['name'] ?? ''));
+        if ($code === '' || $name === '') {
+            flash('error', 'Укажите код и имя.');
+            redirect('/admin/payments/gateways/create');
+        }
+        try {
+            $id = PaymentGateway::create($code, $name, !empty($_POST['enabled']), !empty($_POST['test_mode']));
+            AdminLog::write((int) Auth::id(), 'payment_gateway_create:' . $code, client_ip());
+            flash('success', 'Шлюз создан.');
+            redirect('/admin/payments/gateways/' . $id);
+        } catch (\Throwable $e) {
+            flash('error', $e->getMessage());
+            redirect('/admin/payments/gateways/create');
+        }
     }
 
     public function edit(string $id): void
@@ -45,9 +84,8 @@ final class GatewaysController
             'webhook' => GatewayConfigSchema::webhookHint((string) $gw['code']),
             'hasDriver' => isset(PaymentService::driverMap()[strtolower((string) $gw['code'])]),
             'breadcrumbs' => [
-                ['label' => 'Админ', 'href' => '/admin'],
                 ['label' => 'Платёжные шлюзы', 'href' => '/admin/payments/gateways'],
-                ['label' => (string) $gw['code']],
+                ['label' => 'Изменить'],
             ],
         ], 'admin');
     }
@@ -70,10 +108,12 @@ final class GatewaysController
             $key = $field['key'];
             $config[$key] = (string) ($_POST['config'][$key] ?? '');
         }
+        if (isset($_POST['boosty_page_slug'])) {
+            $config['boosty_page_slug'] = trim((string) $_POST['boosty_page_slug']);
+        }
 
         PaymentGateway::update((int) $id, $name !== '' ? $name : (string) $gw['name'], $enabled, $testMode, $minAmount, $config);
 
-        // синхронизация ручных реквизитов в settings (для совместимости)
         if ($gw['code'] === 'manual_sbp') {
             if (($config['phone'] ?? '') !== '' && $config['phone'] !== '********') {
                 \App\Models\Setting::set('sbp_phone', $config['phone']);
@@ -95,11 +135,41 @@ final class GatewaysController
     {
         Csrf::requireValid();
         $gw = PaymentGateway::findById((int) $id);
-        if ($gw) {
-            PaymentGateway::setEnabled((int) $id, empty($gw['enabled']));
-            AdminLog::write((int) Auth::id(), 'payment_gateway_toggle:' . $gw['code'], client_ip());
-            flash('success', ($gw['enabled'] ? 'Выключен' : 'Включён') . ': ' . $gw['name']);
+        if (!$gw) {
+            $this->toggleRespond(false, 'not found');
+            return;
+        }
+        $field = (string) ($_POST['field'] ?? 'enabled');
+        $value = !empty($_POST['value']) || (string) ($_POST['value'] ?? '') === '1';
+        // если value не передан — инвертируем
+        if (!isset($_POST['value'])) {
+            $value = $field === 'test_mode' ? empty($gw['test_mode']) : empty($gw['enabled']);
+        } else {
+            $raw = $_POST['value'];
+            $value = $raw === true || $raw === 1 || $raw === '1' || $raw === 'true' || $raw === 'on';
+        }
+
+        if ($field === 'test_mode') {
+            PaymentGateway::setTestMode((int) $id, $value);
+        } else {
+            PaymentGateway::setEnabled((int) $id, $value);
+        }
+        AdminLog::write((int) Auth::id(), 'payment_gateway_toggle:' . $gw['code'] . ':' . $field, client_ip());
+
+        $wantsJson = str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json')
+            || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string) $_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        if ($wantsJson) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true, 'field' => $field, 'value' => $value], JSON_UNESCAPED_UNICODE);
+            return;
         }
         redirect('/admin/payments/gateways');
+    }
+
+    private function toggleRespond(bool $ok, string $msg): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code($ok ? 200 : 400);
+        echo json_encode(['ok' => $ok, 'message' => $msg], JSON_UNESCAPED_UNICODE);
     }
 }

@@ -52,7 +52,7 @@ if (!is_array($crumbs)) {
   <title><?= e($title ?? 'Админ') ?> — WL Sales Admin</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/panel.css?v=2">
+  <link rel="stylesheet" href="/assets/css/panel.css?v=3">
 </head>
 <body class="panel-body panel-admin">
 <div class="panel-sidebar-backdrop" data-sidebar-close></div>

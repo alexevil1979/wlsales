@@ -566,6 +566,99 @@
 }
 .panel-body .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.8125rem; }
 
+/* —— Filament-like resource table —— */
+.fi-ta-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.fi-ta-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+.fi-ta-search-ico {
+  position: absolute;
+  left: 0.7rem;
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+.fi-ta-search input[type="search"] {
+  min-width: 12rem;
+  padding: 0.45rem 0.75rem 0.45rem 2.1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font: inherit;
+  background: #fff;
+  box-shadow: var(--fi-shadow);
+}
+.fi-ta-search select {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  font: inherit;
+  background: #fff;
+  box-shadow: var(--fi-shadow);
+}
+.fi-ta .fi-ta-check { width: 2.5rem; }
+.fi-copy-code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.fi-copy-code:hover code { background: var(--panel-primary-50); }
+.fi-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: var(--panel-primary-600);
+  color: #fff !important;
+  box-shadow: var(--fi-shadow);
+}
+.fi-icon-btn:hover { filter: brightness(1.05); text-decoration: none !important; color: #fff !important; }
+.fi-toggle {
+  --tw: 2.75rem;
+  --th: 1.5rem;
+  position: relative;
+  width: var(--tw);
+  height: var(--th);
+  border: 0;
+  border-radius: 999px;
+  background: #e5e7eb;
+  cursor: pointer;
+  padding: 0;
+  transition: background .15s ease;
+  vertical-align: middle;
+}
+.fi-toggle.is-on { background: var(--panel-primary-600); }
+.fi-toggle-knob {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  transition: transform .15s ease;
+}
+.fi-toggle.is-on .fi-toggle-knob { transform: translateX(1.25rem); }
+.fi-toggle:disabled { opacity: 0.6; cursor: wait; }
+
 .panel-body .pill {
   display: inline-flex;
   align-items: center;
