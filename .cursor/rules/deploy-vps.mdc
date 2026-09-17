@@ -1,0 +1,27 @@
+---
+description: Always git push and give VPS deploy commands after changes
+alwaysApply: true
+---
+
+# Deploy habit (WL Sales)
+
+After any project edits:
+
+1. `git commit` + `git push origin` (current branch). Never force-push `main`/`master`. Do not commit secrets (`config.php`, `.env`, tokens, passwords).
+2. In the final reply always include **ready-to-run VPS commands** to apply the update on the live server.
+
+Default deploy path: `/ssd/www/wlsales` (repo root; DocumentRoot is `public/`).
+
+Standard apply block (adapt if path/branch differs):
+
+```bash
+cd /ssd/www/wlsales
+git pull origin main
+# if SQL migrations were added in this change:
+# mysql -u root -p wlsales < sql/00X_....sql
+sudo systemctl reload php8.2-fpm
+# optional: clear opcache / restart apache if needed
+# sudo systemctl reload apache2
+```
+
+Mention any new admin URLs or `.env` keys that need filling after pull.

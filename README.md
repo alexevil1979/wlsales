@@ -2,7 +2,20 @@
 
 Магазин VPS / выделенных серверов с публичными («белыми») IP: аренда, рассрочка и выкуп.
 
-Продакшен: https://wlsales.1tlt.ru
+Продакшен: https://wlsales.1tlt.ru  
+Код на сервере: `/ssd/www/wlsales`
+
+## Обновление на VPS
+
+```bash
+cd /ssd/www/wlsales
+git pull origin main
+# при новой SQL-миграции:
+# mysql -u root -p wlsales < sql/00X_....sql
+sudo systemctl reload php8.2-fpm
+```
+
+После pull: новые разделы админки — **Платёжные системы** (`/admin/payments/gateways`), **Почта SMTP** (`/admin/mail`).
 
 ## Стек
 
