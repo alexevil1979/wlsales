@@ -151,18 +151,5 @@ CREATE TABLE IF NOT EXISTS login_attempts (
   KEY idx_la_ip_time (ip, attempted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- FK servers.assigned_order_id после orders (безопасно при повторном импорте)
-SET @fk_exists := (
-  SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
-  WHERE CONSTRAINT_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'servers'
-    AND CONSTRAINT_NAME = 'fk_servers_order'
-);
-SET @fk_sql := IF(
-  @fk_exists = 0,
-  'ALTER TABLE servers ADD CONSTRAINT fk_servers_order FOREIGN KEY (assigned_order_id) REFERENCES orders(id) ON DELETE SET NULL',
-  'SELECT 1'
-);
-PREPARE fk_stmt FROM @fk_sql;
-EXECUTE fk_stmt;
-DEALLOCATE PREPARE fk_stmt;
+-- FK servers.assigned_order_id → orders не добавляем автоматически:
+-- при повторном импорте ALTER даёт ERROR 1022. Приложение работает и без этого FK.
