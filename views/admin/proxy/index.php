@@ -1,6 +1,12 @@
 <?php
 /** Admin proxy hub */
 ?>
+<div class="fi-header">
+  <div>
+    <h2 class="fi-header-heading" style="font-size:1.25rem;margin:0">Белый вход</h2>
+    <p class="fi-header-sub">Ноды, подписки, DNS-очередь</p>
+  </div>
+</div>
 <div class="panel-stats">
   <div class="panel-stat"><div class="n"><?= count($nodes) ?></div><div class="l">Нод</div></div>
   <div class="panel-stat"><div class="n"><?= count($subscriptions) ?></div><div class="l">Подписок</div></div>
@@ -9,7 +15,7 @@
 </div>
 
 <div class="panel-card form" style="margin-bottom:1rem">
-  <h2 style="font-size:1.05rem;margin-top:0">Новая нода</h2>
+  <h2 class="fi-section-title">Новая нода</h2>
   <form method="post" action="/admin/proxy/nodes">
     <?= \App\Core\Csrf::field() ?>
     <div class="row">
@@ -37,7 +43,7 @@
 </div>
 
 <div class="panel-card" style="margin-bottom:1rem">
-  <h2 style="font-size:1.05rem;margin-top:0">Ноды</h2>
+  <h2 class="fi-section-title">Ноды</h2>
   <div class="table-wrap">
     <table class="data">
       <thead><tr><th>ID</th><th>IP</th><th>Исп./лимит</th><th>Статус</th><th>Сервер</th><th></th></tr></thead>
@@ -83,7 +89,7 @@
 </div>
 
 <div class="panel-card" style="margin-bottom:1rem">
-  <h2 style="font-size:1.05rem;margin-top:0">Очередь DNS</h2>
+  <h2 class="fi-section-title">Очередь DNS</h2>
   <div class="table-wrap">
     <table class="data">
       <thead><tr><th>Домен</th><th>Ожидаемый IP</th><th>Клиент</th><th></th></tr></thead>
@@ -109,7 +115,7 @@
 </div>
 
 <div class="panel-card" style="margin-bottom:1rem">
-  <h2 style="font-size:1.05rem;margin-top:0">Подписки</h2>
+  <h2 class="fi-section-title">Подписки</h2>
   <div class="table-wrap">
     <table class="data">
       <thead><tr><th>ID</th><th>Клиент</th><th>Тариф</th><th>Нода</th><th>Статус</th><th>До</th><th></th></tr></thead>
@@ -142,7 +148,7 @@
 </div>
 
 <div class="panel-card">
-  <h2 style="font-size:1.05rem;margin-top:0">Все домены</h2>
+  <h2 class="fi-section-title">Все домены</h2>
   <div class="table-wrap">
     <table class="data">
       <thead><tr><th>Домен</th><th>Origin</th><th>Статус</th><th>SSL</th><th></th></tr></thead>

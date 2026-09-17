@@ -1,5 +1,11 @@
-<div class="card-soft form" style="margin-bottom:1.2rem">
-  <h2 style="font-size:1.05rem">Добавить сервер</h2>
+<div class="fi-header">
+  <div>
+    <h2 class="fi-header-heading" style="font-size:1.25rem;margin:0">Инвентарь серверов</h2>
+    <p class="fi-header-sub">IP, доступы, привязка к товарам</p>
+  </div>
+</div>
+<div class="panel-card form" style="margin-bottom:1.25rem">
+  <h2 class="fi-section-title">Добавить сервер</h2>
   <form method="post" action="/admin/servers">
     <?= \App\Core\Csrf::field() ?>
     <div class="row">

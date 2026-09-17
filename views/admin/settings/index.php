@@ -4,7 +4,8 @@ $s = $settings;
 ?>
 <form method="post" action="/admin/settings" class="form panel-card">
   <?= \App\Core\Csrf::field() ?>
-  <h2 style="font-size:1.05rem;margin-top:0">Контакты сайта</h2>
+  <h2 class="fi-section-title">Контакты сайта</h2>
+  <p class="fi-section-desc">Публичные контакты и реквизиты на сайте.</p>
   <div class="row">
     <div><label>Telegram</label><input name="site_telegram" value="<?= e($s['site_telegram'] ?? '') ?>"></div>
     <div><label>Email</label><input name="site_email" value="<?= e($s['site_email'] ?? '') ?>"></div>
@@ -14,7 +15,7 @@ $s = $settings;
   <label>Реквизиты</label>
   <textarea name="requisites" rows="4"><?= e($s['requisites'] ?? '') ?></textarea>
 
-  <h2 style="font-size:1.05rem;margin-top:1.4rem">Ручные платежи</h2>
+  <h2 class="fi-section-title" style="margin-top:1.4rem">Ручные платежи</h2>
   <div class="row">
     <div><label>СБП телефон</label><input name="sbp_phone" value="<?= e($s['sbp_phone'] ?? '') ?>"></div>
     <div><label>СБП комментарий</label><input name="sbp_comment" value="<?= e($s['sbp_comment'] ?? '') ?>"></div>
@@ -24,7 +25,7 @@ $s = $settings;
   <label>Курс USD (для FreeKassa world / NOWPayments)</label>
   <input name="usd_rate" value="<?= e($s['usd_rate'] ?? '90') ?>">
 
-  <h2 style="font-size:1.05rem;margin-top:1.4rem">Telegram-уведомления админу</h2>
+  <h2 class="fi-section-title" style="margin-top:1.4rem">Telegram-уведомления админу</h2>
   <p style="font-size:0.88rem">Как в fullvpnservice: бот шлёт события в чат. Токен/chat_id можно задать здесь или в <code>.env</code> (<code>TELEGRAM_BOT_TOKEN</code>, <code>TELEGRAM_ADMIN_CHAT_ID</code>).</p>
   <div class="row">
     <div><label>Bot token</label><input name="tg_bot_token" value="<?= e($s['tg_bot_token'] ?? '') ?>" autocomplete="off"></div>
@@ -39,7 +40,7 @@ $s = $settings;
     <div><label><input type="checkbox" name="tg_notify_tickets" value="1" <?= (($s['tg_notify_tickets'] ?? '1') === '1') ? 'checked' : '' ?>> Тикеты</label></div>
   </div>
 
-  <h2 style="font-size:1.05rem;margin-top:1.4rem">Документы</h2>
+  <h2 class="fi-section-title" style="margin-top:1.4rem">Документы</h2>
   <label>Оферта (HTML)</label>
   <textarea name="offer_html" rows="5"><?= e($s['offer_html'] ?? '') ?></textarea>
   <label>Персональные данные (HTML)</label>

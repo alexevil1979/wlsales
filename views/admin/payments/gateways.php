@@ -13,13 +13,13 @@ $flag = static function (string $key, bool $defaultOn = true) use ($s): bool {
     return ($s[$key] ?? '0') === '1';
 };
 ?>
-<p style="margin-top:0">Ключи можно задать здесь <strong>или</strong> в <code>.env</code>. Значение из админки имеет приоритет. Секреты при сохранении не затираются, если оставить поле пустым / <code>********</code>.</p>
+<p class="fi-section-desc" style="margin-top:0">Ключи можно задать здесь <strong>или</strong> в <code>.env</code>. Значение из админки имеет приоритет. Секреты при сохранении не затираются, если оставить поле пустым / <code>********</code>.</p>
 
 <form method="post" action="/admin/payments/gateways" class="form">
   <?= \App\Core\Csrf::field() ?>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">
+    <h2 class="fi-section-title">
       СБП вручную
       <span class="pill"><?= !empty($enabled['manual_sbp']) ? 'вкл' : 'выкл' ?></span>
     </h2>
@@ -31,7 +31,7 @@ $flag = static function (string $key, bool $defaultOn = true) use ($s): bool {
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">
+    <h2 class="fi-section-title">
       USDT TRC20 вручную
       <span class="pill"><?= !empty($enabled['crypto_usdt']) ? 'вкл' : 'выкл' ?></span>
     </h2>
@@ -41,7 +41,7 @@ $flag = static function (string $key, bool $defaultOn = true) use ($s): bool {
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">
+    <h2 class="fi-section-title">
       ЮKassa
       <span class="pill"><?= !empty($enabled['yookassa']) ? 'вкл' : 'выкл' ?></span>
     </h2>
@@ -56,7 +56,7 @@ $flag = static function (string $key, bool $defaultOn = true) use ($s): bool {
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">
+    <h2 class="fi-section-title">
       FreeKassa (СБП / карты РФ / world USD)
       <span class="pill"><?= !empty($enabled['freekassa_sbp']) ? 'вкл' : 'выкл' ?></span>
     </h2>
@@ -73,7 +73,7 @@ $flag = static function (string $key, bool $defaultOn = true) use ($s): bool {
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">
+    <h2 class="fi-section-title">
       Platega
       <span class="pill"><?= !empty($enabled['platega']) ? 'вкл' : 'выкл' ?></span>
     </h2>
@@ -90,7 +90,7 @@ $flag = static function (string $key, bool $defaultOn = true) use ($s): bool {
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">
+    <h2 class="fi-section-title">
       NOWPayments (crypto)
       <span class="pill"><?= !empty($enabled['nowpayments']) ? 'вкл' : 'выкл' ?></span>
     </h2>

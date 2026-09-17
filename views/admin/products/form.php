@@ -1,6 +1,8 @@
 <?php $p = $product; ?>
-<form method="post" class="form card-soft" action="<?= $p ? '/admin/products/' . (int)$p['id'] . '/edit' : '/admin/products/create' ?>">
+<form method="post" class="form panel-card" action="<?= $p ? '/admin/products/' . (int)$p['id'] . '/edit' : '/admin/products/create' ?>">
   <?= \App\Core\Csrf::field() ?>
+  <h2 class="fi-section-title"><?= $p ? 'Редактирование товара' : 'Новый товар' ?></h2>
+  <p class="fi-section-desc">Карточка лота на витрине каталога.</p>
   <div class="row">
     <div><label>Название</label><input name="title" required value="<?= e($p['title'] ?? '') ?>"></div>
     <div><label>Slug</label><input name="slug" value="<?= e($p['slug'] ?? '') ?>" placeholder="auto"></div>

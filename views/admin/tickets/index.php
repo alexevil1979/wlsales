@@ -1,4 +1,10 @@
-<div class="table-wrap card-soft">
+<div class="fi-header">
+  <div>
+    <h2 class="fi-header-heading" style="font-size:1.25rem;margin:0">Тикеты</h2>
+    <p class="fi-header-sub">Обращения клиентов</p>
+  </div>
+</div>
+<div class="table-wrap">
   <table class="data">
     <thead><tr><th>ID</th><th>Клиент</th><th>Тема</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
     <tbody>

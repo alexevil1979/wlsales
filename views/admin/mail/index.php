@@ -6,13 +6,13 @@ $smtpOn = array_key_exists('mail_smtp_on', $s)
     ? (($s['mail_smtp_on'] ?? '0') === '1')
     : (mail_cfg('mail_smtp_host', 'MAIL_SMTP_HOST') !== '');
 ?>
-<p style="margin-top:0">Как <strong>SMTP settings</strong> в fullvpnservice: параметры из админки имеют приоритет над <code>.env</code>. Без PHPMailer используется встроенный SMTP-клиент.</p>
+<p class="fi-section-desc" style="margin-top:0">Как SMTP settings в fullvpnservice: параметры из админки имеют приоритет над <code>.env</code>. Без PHPMailer используется встроенный SMTP-клиент.</p>
 
 <form method="post" action="/admin/mail" class="form">
   <?= \App\Core\Csrf::field() ?>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">SMTP</h2>
+    <h2 class="fi-section-title">SMTP</h2>
     <label><input type="checkbox" name="mail_smtp_on" value="1" <?= $smtpOn ? 'checked' : '' ?>> Включить SMTP (иначе — системный <code>mail()</code>)</label>
     <div class="row">
       <div><label>Host</label><input name="mail_smtp_host" value="<?= e($s['mail_smtp_host'] ?? mail_cfg('mail_smtp_host', 'MAIL_SMTP_HOST')) ?>" placeholder="smtp.gmail.com"></div>
@@ -39,14 +39,14 @@ $smtpOn = array_key_exists('mail_smtp_on', $s)
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">Уведомления по тикетам</h2>
+    <h2 class="fi-section-title">Уведомления по тикетам</h2>
     <label><input type="checkbox" name="mail_notify_ticket_opened" value="1" <?= (($s['mail_notify_ticket_opened'] ?? '1') === '1') ? 'checked' : '' ?>> Письмо клиенту при создании тикета</label>
     <label><input type="checkbox" name="mail_notify_admin_reply" value="1" <?= (($s['mail_notify_admin_reply'] ?? '1') === '1') ? 'checked' : '' ?>> Письмо клиенту при ответе поддержки</label>
     <p style="font-size:0.85rem;margin:0.5rem 0 0;color:#6b7280">Админу по-прежнему уходит Telegram (если включено в Настройках).</p>
   </div>
 
   <div class="panel-card" style="margin-bottom:1rem">
-    <h2 style="font-size:1.05rem;margin-top:0">Тест</h2>
+    <h2 class="fi-section-title">Тест</h2>
     <label>Email для теста</label>
     <input name="mail_test_to" value="<?= e($s['mail_test_to'] ?? (\App\Core\Auth::user()['email'] ?? '')) ?>">
   </div>
