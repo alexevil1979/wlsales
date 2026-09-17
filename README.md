@@ -100,15 +100,23 @@ FreeKassa даёт три метода: СБП (i=44), карты РФ (i=36), w
 
 ## Почта
 
-По умолчанию `MAIL_DRIVER=mail` (нативный `mail()`).
+Админка → **Почта (SMTP)** (`/admin/mail`) — как SmtpSetting в fullvpnservice:
+host/port/TLS/login/from, тест письма, флаги писем по тикетам.
+Значения из админки важнее `.env`.
 
-Для PHPMailer:
+Без PHPMailer работает встроенный SMTP-клиент. Опционально:
 
 ```bash
 composer require phpmailer/phpmailer
 ```
 
-и в `.env`: `MAIL_DRIVER=phpmailer` + SMTP-поля.
+`.env` (fallback): `MAIL_FROM`, `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT`, `MAIL_SMTP_USER`, `MAIL_SMTP_PASS`, `MAIL_SMTP_SECURE`.
+
+### Тикеты
+
+ЛК `/account/tickets` ↔ админка `/admin/tickets`.
+При создании тикета: Telegram админу + письмо клиенту.
+При ответе поддержки: письмо клиенту со ссылкой в ЛК.
 
 ## Белый вход для сайта (proxy)
 

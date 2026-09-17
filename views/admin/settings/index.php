@@ -49,5 +49,5 @@ $s = $settings;
     <button class="btn btn-primary" type="submit">Сохранить</button>
     <button class="btn btn-ghost" type="submit" name="tg_test" value="1">Тест Telegram</button>
   </p>
-  <p style="margin-top:1rem;font-size:0.9rem">Ключи ЮKassa / FreeKassa / Platega / NOWPayments — в разделе <a href="/admin/payments/gateways">Платёжные системы</a>.</p>
+  <p style="margin-top:1rem;font-size:0.9rem">Ключи ЮKassa / FreeKassa / Platega / NOWPayments — в разделе <a href="/admin/payments/gateways">Платёжные системы</a>. SMTP — в <a href="/admin/mail">Почта</a>.</p>
 </form>

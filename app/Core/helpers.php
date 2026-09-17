@@ -149,3 +149,11 @@ function pay_cfg(string $settingKey, string $envKey = '', string $default = ''):
     }
     return $default;
 }
+
+/**
+ * Конфиг почты: сначала settings (админка SMTP), затем .env.
+ */
+function mail_cfg(string $settingKey, string $envKey = '', string $default = ''): string
+{
+    return pay_cfg($settingKey, $envKey, $default);
+}

@@ -12,6 +12,8 @@ use App\Models\ProxyDomain;
 use App\Models\ProxyNode;
 use App\Models\ProxySubscription;
 use App\Models\Ticket;
+use App\Services\TelegramNotifier;
+use App\Services\TicketMail;
 
 final class AccountProxyController
 {
@@ -137,9 +139,13 @@ final class AccountProxyController
         }
         $tid = Ticket::create((int) $user['id'], $subject, null);
         Ticket::addMessage($tid, (int) $user['id'], $body);
-        \App\Services\TelegramNotifier::notifyTicket(
-            ['id' => $tid, 'subject' => $subject, 'user_email' => $user['email']],
-            $body
+        $ticket = ['id' => $tid, 'subject' => $subject, 'user_email' => $user['email']];
+        TelegramNotifier::notifyTicket($ticket, $body);
+        TicketMail::notifyOpened(
+            $ticket,
+            $body,
+            (string) ($user['email'] ?? ''),
+            (string) ($user['name'] ?? '')
         );
         flash('success', 'Тикет создан.');
         redirect('/account/tickets/' . $tid);

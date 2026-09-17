@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Csrf;
 use App\Core\View;
 use App\Models\Ticket;
+use App\Services\TicketMail;
 
 final class TicketsController
 {
@@ -37,11 +38,23 @@ final class TicketsController
         Csrf::requireValid();
         $body = trim((string) ($_POST['body'] ?? ''));
         $status = (string) ($_POST['status'] ?? 'answered');
+        $ticket = Ticket::findById((int) $id);
+        if (!$ticket) {
+            redirect('/admin/tickets');
+        }
         if ($body !== '') {
             Ticket::addMessage((int) $id, (int) Auth::id(), $body);
+            TicketMail::notifyAdminReply(
+                $ticket,
+                $body,
+                (string) ($ticket['user_email'] ?? ''),
+                (string) ($ticket['user_name'] ?? '')
+            );
         }
         if (in_array($status, ['open', 'answered', 'closed'], true)) {
             Ticket::setStatus((int) $id, $status);
+        } elseif ($body !== '') {
+            Ticket::setStatus((int) $id, 'answered');
         }
         flash('success', 'Ответ сохранён.');
         redirect('/admin/tickets/' . $id);

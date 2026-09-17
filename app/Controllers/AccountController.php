@@ -13,6 +13,7 @@ use App\Models\Server;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\TelegramNotifier;
+use App\Services\TicketMail;
 
 final class AccountController
 {
@@ -98,6 +99,12 @@ final class AccountController
         $ticket = Ticket::findById($tid);
         if ($ticket) {
             TelegramNotifier::notifyTicket($ticket, $body);
+            TicketMail::notifyOpened(
+                $ticket,
+                $body,
+                (string) ($user['email'] ?? ''),
+                (string) ($user['name'] ?? '')
+            );
         }
         flash('success', 'Тикет создан.');
         redirect('/account/tickets/' . $tid);
@@ -134,6 +141,7 @@ final class AccountController
         }
         Ticket::addMessage((int) $id, (int) $user['id'], $body);
         Ticket::setStatus((int) $id, 'open');
+        TelegramNotifier::notifyTicket($ticket, $body);
         flash('success', 'Сообщение отправлено.');
         redirect('/account/tickets/' . $id);
     }

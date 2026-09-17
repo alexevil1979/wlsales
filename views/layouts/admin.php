@@ -41,6 +41,7 @@ $link = static function (string $href, string $label) use ($path): string {
       <?= $link('/admin/tickets', 'Тикеты') ?>
       <div class="nav-section">Система</div>
       <?= $link('/admin/payments/gateways', 'Платёжные системы') ?>
+      <?= $link('/admin/mail', 'Почта (SMTP)') ?>
       <?= $link('/admin/settings', 'Настройки') ?>
     </nav>
     <a class="panel-footer-link" href="/">← На сайт</a>

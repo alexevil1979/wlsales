@@ -7,9 +7,9 @@
         <td>#<?= (int)$t['id'] ?></td>
         <td><?= e($t['user_email']) ?></td>
         <td><?= e($t['subject']) ?></td>
-        <td><?= e($t['status']) ?></td>
+        <td><span class="pill"><?= e($t['status']) ?></span></td>
         <td><?= e($t['created_at']) ?></td>
-        <td><a href="/admin/tickets/<?= (int)$t['id'] ?>">Открыть</a></td>
+        <td><a class="btn btn-ghost btn-sm" href="/admin/tickets/<?= (int)$t['id'] ?>">Открыть</a></td>
       </tr>
     <?php endforeach; ?>
     </tbody>

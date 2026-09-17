@@ -8,6 +8,7 @@ use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\OrdersController;
 use App\Controllers\Admin\PaymentsController;
 use App\Controllers\Admin\GatewaysController;
+use App\Controllers\Admin\MailController;
 use App\Controllers\Admin\ProductsController;
 use App\Controllers\Admin\ProxyAdminController;
 use App\Controllers\Admin\ServersController;
@@ -116,6 +117,8 @@ $router->post('/admin/tickets/{id}', [TicketsController::class, 'reply'], ['admi
 
 $router->get('/admin/settings', [SettingsController::class, 'index'], ['admin']);
 $router->post('/admin/settings', [SettingsController::class, 'save'], ['admin']);
+$router->get('/admin/mail', [MailController::class, 'index'], ['admin']);
+$router->post('/admin/mail', [MailController::class, 'save'], ['admin']);
 
 $router->get('/cron', [CronController::class, 'run']);
 
