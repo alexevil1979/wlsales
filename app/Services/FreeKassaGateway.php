@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -9,7 +9,7 @@ use App\Models\Payment;
 use App\Models\PaymentGateway;
 
 /**
- * FreeKassa — как в fullvpnservice (СБП / карты РФ / world card).
+ * FreeKassa вЂ” РєР°Рє РІ fullvpnservice (РЎР‘Рџ / РєР°СЂС‚С‹ Р Р¤ / world card).
  */
 final class FreeKassaGateway implements PaymentGatewayInterface
 {
@@ -76,7 +76,7 @@ final class FreeKassaGateway implements PaymentGatewayInterface
             'nonce' => (int) (microtime(true) * 1000),
             'paymentId' => (string) $paymentId,
             'i' => $method,
-            'email' => (string) ($order['user_email'] ?? 'client@wlsales.local'),
+            'email' => (string) ($order['user_email'] ?? 'client@white-list.space'),
             'ip' => $ip,
             'amount' => (float) number_format($amount, 2, '.', ''),
             'currency' => $currency,
@@ -114,7 +114,7 @@ final class FreeKassaGateway implements PaymentGatewayInterface
         $st->execute([$external, $paymentId]);
 
         if ($url === '') {
-            throw new \RuntimeException('FreeKassa: не получен URL оплаты');
+            throw new \RuntimeException('FreeKassa: РЅРµ РїРѕР»СѓС‡РµРЅ URL РѕРїР»Р°С‚С‹');
         }
 
         return ['url' => $url, 'invoiceId' => (string) $external];

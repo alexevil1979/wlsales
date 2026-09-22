@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -22,7 +22,7 @@ final class ResetAdminController
         }
 
         try {
-            $email = trim((string) Env::get('ADMIN_EMAIL', 'admin@wlsales.1tlt.ru'));
+            $email = trim((string) Env::get('ADMIN_EMAIL', 'admin@white-list.space'));
             $password = (string) Env::get('ADMIN_PASSWORD', 'ChangeMeAdmin2026!');
             if ($email === '' || $password === '') {
                 fwrite(STDERR, "ERROR: ADMIN_EMAIL / ADMIN_PASSWORD empty in .env\n");
@@ -46,7 +46,7 @@ final class ResetAdminController
 
             $st = Database::pdo()->prepare(
                 "INSERT INTO users (email, password_hash, name, telegram, role, is_banned, created_at)
-                 VALUES (?, ?, 'Администратор', '', 'admin', 0, ?)"
+                 VALUES (?, ?, 'РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ', '', 'admin', 0, ?)"
             );
             $st->execute([$email, $hash, now_dt()]);
             echo "OK: admin created\n";

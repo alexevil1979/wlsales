@@ -2,7 +2,7 @@
 
 Магазин VPS / выделенных серверов с публичными («белыми») IP: аренда, рассрочка и выкуп.
 
-Продакшен: https://wlsales.1tlt.ru  
+Продакшен: https://white-list.space  
 Код на сервере: `/ssd/www/wlsales`
 
 ## Обновление на VPS
@@ -57,7 +57,8 @@ chown -R www-data:www-data storage public/uploads
 
 ```apache
 <VirtualHost *:80>
-    ServerName wlsales.1tlt.ru
+    ServerName white-list.space
+    ServerAlias www.white-list.space
     DocumentRoot /var/www/wlsales/public
 
     <Directory /var/www/wlsales/public>
@@ -74,7 +75,7 @@ chown -R www-data:www-data storage public/uploads
 
 ## Админ по умолчанию (seed)
 
-- Email: `admin@wlsales.1tlt.ru`
+- Email: `admin@white-list.space`
 - Пароль: `ChangeMeAdmin2026!` (из `.env.example`)
 
 **Смените пароль сразу после первого входа.**
@@ -90,7 +91,7 @@ chown -R www-data:www-data storage public/uploads
 Либо HTTP (токен = `APP_KEY` из `.env`):
 
 ```
-GET https://wlsales.1tlt.ru/cron?token=YOUR_APP_KEY
+GET https://white-list.space/cron?token=YOUR_APP_KEY
 ```
 
 ## Оплата

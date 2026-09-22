@@ -1,8 +1,8 @@
 # ЮKassa (Яндекс): от регистрации до полей в админке WL Sales
 
-Пошаговая шпаргалка для нового аккаунта. Сайт проекта: `https://wlsales.1tlt.ru`  
+Пошаговая шпаргалка для нового аккаунта. Сайт проекта: `https://white-list.space`  
 Админка шлюзов: `/admin/payments/gateways`  
-Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
+Webhook проекта: `https://white-list.space/webhooks/yookassa`
 
 ---
 
@@ -12,8 +12,8 @@ Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
 |---|---|
 | **shopId** (Настройки → Магазин) | Платёжные системы → **ЮKassa** → поле **shopId** |
 | **Секретный ключ** (Интеграция → Ключи API) | то же → **secretKey** |
-| URL возврата после оплаты | то же → **Return URL** = `https://wlsales.1tlt.ru/account/orders` |
-| HTTP-уведомления | в кабинете ЮKassa URL = `https://wlsales.1tlt.ru/webhooks/yookassa` |
+| URL возврата после оплаты | то же → **Return URL** = `https://white-list.space/account/orders` |
+| HTTP-уведомления | в кабинете ЮKassa URL = `https://white-list.space/webhooks/yookassa` |
 | Тестовый магазин | в карточке шлюза включить **Тест** (`test_mode`) |
 | Боевой магазин | **Тест** выключить, ключи взять от боевого магазина |
 
@@ -44,7 +44,7 @@ Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
 В личном кабинете ЮKassa:
 
 1. Создайте **тестовый магазин** (для отладки) и позже — **боевой**.
-2. Укажите сайт: `https://wlsales.1tlt.ru`
+2. Укажите сайт: `https://white-list.space`
 3. Способ подключения: **API** (HTTP Basic Auth) — не старый «HTTP-протокол CMS».
 
 У магазина есть свой **shopId** и свои ключи. Не смешивайте ключи тестового и боевого магазина.
@@ -75,7 +75,7 @@ Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
 
 | Параметр | Значение |
 |---|---|
-| URL | `https://wlsales.1tlt.ru/webhooks/yookassa` |
+| URL | `https://white-list.space/webhooks/yookassa` |
 | Протокол | только **HTTPS**, порт 443 |
 | События | минимум **`payment.succeeded`** (можно добавить `payment.waiting_for_capture`, `payment.canceled` — проект обрабатывает успех) |
 
@@ -87,7 +87,7 @@ Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
 
 ## 5. Куда вставлять в админку проекта
 
-1. Войти: `https://wlsales.1tlt.ru/admin`
+1. Войти: `https://white-list.space/admin`
 2. Меню → **Платёжные системы** → `/admin/payments/gateways`
 3. В фильтре **Тип** выбрать **Legacy (ЮKassa и др.)** — иначе строка `yookassa` в списке скрыта.
 4. Открыть **ЮKassa** (код `yookassa`).
@@ -102,7 +102,7 @@ Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
 | **Мин. сумма ₽** | 0 или свой порог |
 | **shopId** | из Настройки → Магазин |
 | **secretKey** | из Интеграция → Ключи API |
-| **Return URL** | `https://wlsales.1tlt.ru/account/orders` |
+| **Return URL** | `https://white-list.space/account/orders` |
 | **Доп. комиссия %** | 0 (или наценка, если нужна) |
 
 Сохранить → на чекауте должен появиться способ «Карта / СБП через ЮKassa».
@@ -114,7 +114,7 @@ Webhook проекта: `https://wlsales.1tlt.ru/webhooks/yookassa`
 ```env
 YOOKASSA_SHOP_ID=...
 YOOKASSA_SECRET_KEY=...
-YOOKASSA_RETURN_URL=https://wlsales.1tlt.ru/account/orders
+YOOKASSA_RETURN_URL=https://white-list.space/account/orders
 ```
 
 Старые ключи в `settings` (`pay_yookassa_*`) при первом сиде могут подтянуться в шлюз автоматически — дальше править только карточку шлюза.
@@ -169,10 +169,10 @@ YOOKASSA_RETURN_URL=https://wlsales.1tlt.ru/account/orders
 ## 9. Чеклист нового аккаунта (копипаст)
 
 - [ ] Регистрация ЮKassa / Яндекс ID  
-- [ ] Тестовый магазин, сайт `https://wlsales.1tlt.ru`  
+- [ ] Тестовый магазин, сайт `https://white-list.space`  
 - [ ] Скопирован **shopId**  
 - [ ] Скопирован / скачан **secretKey**  
-- [ ] HTTP-уведомления → `https://wlsales.1tlt.ru/webhooks/yookassa`, событие `payment.succeeded`  
+- [ ] HTTP-уведомления → `https://white-list.space/webhooks/yookassa`, событие `payment.succeeded`  
 - [ ] Админка → Платёжные системы → Legacy → ЮKassa → вставлены поля, Вкл + Тест  
 - [ ] Тестовая оплата → заказ в админке «Оплачен»  
 - [ ] (Позже) Договор + боевой магазин + новые ключи + снять Тест  

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wlsales.1tlt.ru/sitemap.xml
+Sitemap: https://white-list.space/sitemap.xml

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -12,7 +12,7 @@ final class Mailer
         $fromName = mail_cfg('mail_from_name', 'MAIL_FROM_NAME', 'WL Sales');
         $smtpOn = setting('mail_smtp_on', '') === '1';
         if (setting('mail_smtp_on', '') === '' && mail_cfg('mail_smtp_host', 'MAIL_SMTP_HOST') !== '') {
-            // ещё не сохраняли флаг в админке — включаем SMTP, если host уже в .env
+            // РµС‰С‘ РЅРµ СЃРѕС…СЂР°РЅСЏР»Рё С„Р»Р°Рі РІ Р°РґРјРёРЅРєРµ вЂ” РІРєР»СЋС‡Р°РµРј SMTP, РµСЃР»Рё host СѓР¶Рµ РІ .env
             $smtpOn = true;
         }
 
@@ -80,7 +80,7 @@ final class Mailer
     }
 
     /**
-     * Минимальный SMTP (AUTH LOGIN) без PHPMailer — как fallback для админ-SMTP.
+     * РњРёРЅРёРјР°Р»СЊРЅС‹Р№ SMTP (AUTH LOGIN) Р±РµР· PHPMailer вЂ” РєР°Рє fallback РґР»СЏ Р°РґРјРёРЅ-SMTP.
      */
     private static function sendSmtp(string $to, string $subject, string $bodyHtml, string $from, string $fromName): bool
     {
@@ -100,13 +100,13 @@ final class Mailer
 
         try {
             self::smtpExpect($fp, [220]);
-            self::smtpCmd($fp, 'EHLO wlsales.local', [250]);
+            self::smtpCmd($fp, 'EHLO white-list.space', [250]);
             if ($secure === 'tls') {
                 self::smtpCmd($fp, 'STARTTLS', [220]);
                 if (!stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                     throw new \RuntimeException('STARTTLS failed');
                 }
-                self::smtpCmd($fp, 'EHLO wlsales.local', [250]);
+                self::smtpCmd($fp, 'EHLO white-list.space', [250]);
             }
             if ($user !== '') {
                 self::smtpCmd($fp, 'AUTH LOGIN', [334]);

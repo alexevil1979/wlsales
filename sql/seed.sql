@@ -2,9 +2,9 @@
 SET NAMES utf8mb4;
 SET time_zone = '+03:00';
 
--- Admin: admin@wlsales.1tlt.ru / ChangeMeAdmin2026! (сменить после деплоя)
+-- Admin: admin@white-list.space / ChangeMeAdmin2026! (сменить после деплоя)
 INSERT INTO users (email, password_hash, name, telegram, role, is_banned, created_at) VALUES
-('admin@wlsales.1tlt.ru', '$2y$10$a.jYnWBz6h3UKaeK1XyDXerJaDNH4NtytpZm/R/rJIaQkq2RTToHW', 'Администратор', '', 'admin', 0, NOW());
+('admin@white-list.space', '$2y$10$a.jYnWBz6h3UKaeK1XyDXerJaDNH4NtytpZm/R/rJIaQkq2RTToHW', 'Администратор', '', 'admin', 0, NOW());
 
 INSERT INTO products (slug, title, vendor, location, subnet, cpu, ram_gb, disk_gb, nic, traffic, description, price_rent, price_forever, price_inst_2, price_inst_4, status, sort, created_at) VALUES
 ('selectel-spb-4-8', 'Selectel VPS 4/8 — СПб', 'Selectel', 'Санкт-Петербург', '95.163.x.0/24', '4 vCPU', 8, 80, '1 Gbit', 'безлимит', 'Публичный IPv4 из проверенной российской подсети. Чистая ОС, root-доступ. IP проверяется перед выдачей.', 7500.00, 32000.00, 16000.00, 28000.00, 'available', 10, NOW()),
@@ -16,7 +16,7 @@ INSERT INTO products (slug, title, vendor, location, subnet, cpu, ram_gb, disk_g
 
 INSERT INTO settings (k, v) VALUES
 ('site_telegram', 'https://t.me/wlsales_support'),
-('site_email', 'support@wlsales.1tlt.ru'),
+('site_email', 'support@white-list.space'),
 ('site_phone', ''),
 ('requisites', 'ООО «Пример»\nИНН 0000000000\nОГРН 0000000000000\nр/с 40702810000000000000'),
 ('sbp_phone', '+7 (900) 000-00-00'),
