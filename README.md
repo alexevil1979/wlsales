@@ -5,7 +5,7 @@
 Продакшен: https://white-list.space  
 Код на сервере: `/ssd/www/wlsales`
 
-Перенос на **новый** VPS один в один (дамп БД, `.env`, uploads, Apache, cron, DNS): [docs/миграция-vps.md](docs/миграция-vps.md).
+Чистая установка на **новый** VPS: [docs/миграция-vps.md](docs/миграция-vps.md).
 
 ## Обновление на VPS
 
