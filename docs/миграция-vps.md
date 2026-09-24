@@ -16,7 +16,6 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y \
   apache2 \
   mysql-server \
-  certbot python3-certbot-apache \
   git curl \
   php8.2 php8.2-fpm php8.2-cli php8.2-mysql php8.2-xml php8.2-mbstring \
   php8.2-curl php8.2-zip php8.2-gd php8.2-intl php8.2-bcmath php8.2-opcache
@@ -27,6 +26,8 @@ sudo systemctl enable --now apache2 php8.2-fpm mysql
 ```
 
 Если нет `php8.2` — поставьте ту же ветку PHP 8.2 через ondrej/php или используйте пакеты дистрибутива с PHP ≥ 8.2.
+
+Сертификаты уже лежат в `/etc/letsencrypt/live/` — certbot для выпуска не нужен. Для автопродления на сервере должен остаться установленный certbot/timer (если LE уже настроен).
 
 ---
 
@@ -128,11 +129,36 @@ sudo chmod -R 775 storage public/uploads
 
 ---
 
-## 6. Apache
+## 6. Apache (сертификаты из Let’s Encrypt)
+
+Серты уже на диске, стандартные пути:
+
+```text
+/etc/letsencrypt/live/white-list.space/fullchain.pem
+/etc/letsencrypt/live/white-list.space/privkey.pem
+```
+
+Проверка имени каталога (если домен другой — подставьте своё):
+
+```bash
+sudo ls -la /etc/letsencrypt/live/
+sudo ls -la /etc/letsencrypt/live/white-list.space/
+```
+
+Конфиги HTTP (редирект) + HTTPS:
 
 ```bash
 sudo tee /etc/apache2/sites-available/wlsales.conf >/dev/null <<'EOF'
 <VirtualHost *:80>
+    ServerName white-list.space
+    ServerAlias www.white-list.space
+    RewriteEngine On
+    RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+EOF
+
+sudo tee /etc/apache2/sites-available/wlsales-ssl.conf >/dev/null <<'EOF'
+<VirtualHost *:443>
     ServerName white-list.space
     ServerAlias www.white-list.space
     DocumentRoot /ssd/www/wlsales/public
@@ -143,24 +169,26 @@ sudo tee /etc/apache2/sites-available/wlsales.conf >/dev/null <<'EOF'
         Options -Indexes +FollowSymLinks
     </Directory>
 
+    SSLEngine on
+    SSLCertificateFile      /etc/letsencrypt/live/white-list.space/fullchain.pem
+    SSLCertificateKeyFile   /etc/letsencrypt/live/white-list.space/privkey.pem
+    # если есть options-ssl-apache conf от certbot — раскомментируйте:
+    # Include /etc/letsencrypt/options-ssl-apache.conf
+
+    Header always set Strict-Transport-Security "max-age=31536000"
+
     ErrorLog ${APACHE_LOG_DIR}/wlsales-error.log
     CustomLog ${APACHE_LOG_DIR}/wlsales-access.log combined
 </VirtualHost>
 EOF
 
-sudo a2ensite wlsales.conf
-sudo a2dissite 000-default.conf 2>/dev/null || true
+sudo a2ensite wlsales.conf wlsales-ssl.conf
+sudo a2dissite 000-default.conf default-ssl.conf 2>/dev/null || true
 sudo apache2ctl configtest
 sudo systemctl reload apache2
 ```
 
-DNS: A-записи `@` и `www` → IP этого VPS.
-
-HTTPS:
-
-```bash
-sudo certbot --apache -d white-list.space -d www.white-list.space
-```
+DNS: A-записи `@` и `www` → IP этого VPS (если ещё не указывают сюда).
 
 ---
 
@@ -210,12 +238,12 @@ sudo systemctl reload php8.2-fpm
 
 ## Краткий чеклист
 
-1. PHP 8.2 + Apache + MySQL + certbot  
+1. PHP 8.2 + Apache + MySQL  
 2. `git clone` → `/ssd/www/wlsales`  
 3. `.env` из example (ключи, БД, URL)  
 4. БД + `schema` + `seed` + `002` + `003`  
 5. Права на `storage` и `uploads`  
-6. VirtualHost → DocumentRoot `public/`  
-7. DNS + certbot  
+6. Apache: HTTP→HTTPS + SSL из `/etc/letsencrypt/live/white-list.space/`  
+7. DNS на IP VPS  
 8. Cron  
 9. Админка: пароль, почта, платежи  
